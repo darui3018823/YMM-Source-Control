@@ -501,7 +501,7 @@
             <TextBlock Text="{Binding OperationTitle}" FontWeight="SemiBold" />
             <TextBlock Grid.Column="1" Text="{Binding Conflicts.Count}" Foreground="{StaticResource MutedBrush}" />
           </Grid>
-          <TextBlock Text="各ファイルで採用する内容を選ぶと、自動的にステージされます。" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6" />
+          <TextBlock Text="このPCとRemote（共有先）の両方で変更されたファイルがあります。残したい内容を選んでください。選んだ内容は自動的に登録され、すべて選ぶと「続行」できます。" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6" />
           <ListBox ItemsSource="{Binding Conflicts}" MaxHeight="130" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
               <DataTemplate>
@@ -515,16 +515,16 @@
                     <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="ローカル" Tag="{Binding}" ToolTip="ローカルの内容を採用" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
-                    <Button Content="Remote" Tag="{Binding}" ToolTip="Remoteから受信した内容を採用" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+                    <Button Content="このPCの内容" Tag="{Binding}" ToolTip="このPCで作業していた内容を残す" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
+                    <Button Content="Remoteの内容" Tag="{Binding}" ToolTip="Remoteから取得した内容を使う" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
                   </StackPanel>
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
-            <Button Content="中止" Click="AbortOperationClick" Style="{StaticResource ActionButtonStyle}" />
-            <Button Content="続行" Click="ContinueOperationClick" Margin="0">
+            <Button Content="中止" ToolTip="今回のMergeまたはRebaseを取り消す" Click="AbortOperationClick" Style="{StaticResource ActionButtonStyle}" />
+            <Button Content="続行" ToolTip="すべての競合ファイルで内容を選んだ後に進める" Click="ContinueOperationClick" Margin="0">
               <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
                   <Setter Property="IsEnabled" Value="True" />
