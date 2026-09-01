@@ -90,7 +90,22 @@
       <TextBlock Text="ソース管理" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
       <StackPanel Grid.Column="1" Orientation="Horizontal">
         <Button Content="📁" ToolTip="リポジトリを選択" Click="ChooseRepositoryClick" />
-        <Button Content="⟳" ToolTip="更新" Click="RefreshClick" Margin="0" />
+        <Button Content="⟳" ToolTip="更新" Click="RefreshClick" />
+        <Button Content="…" ToolTip="Git操作" Click="OpenRepositoryMenuClick" Margin="0">
+          <Button.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="Fetch" Click="FetchClick" />
+              <MenuItem Header="Pull..." Click="PullClick" />
+              <MenuItem Header="Push" Click="PushClick" />
+              <MenuItem Header="同期" Click="SyncClick" />
+              <Separator />
+              <MenuItem Header="ブランチをMerge..." Click="MergeBranchClick" />
+              <MenuItem Header="ブランチをRebase..." Click="RebaseBranchClick" />
+              <Separator />
+              <MenuItem Header="GitHubへRemoteを発行..." Click="PublishRemoteClick" />
+            </ContextMenu>
+          </Button.ContextMenu>
+        </Button>
       </StackPanel>
     </Grid>
 
@@ -132,7 +147,8 @@
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="1.3*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="1.1*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="1.1*" />
         <RowDefinition Height="Auto" />
@@ -151,19 +167,146 @@
       </Grid>
       <TextBlock Grid.Row="1" Text="{Binding RepositoryRoot}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" Margin="0,0,0,7" />
 
-      <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="#FFFFFF" Margin="0,0,0,6">
+      <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="#FAFAFA" Padding="6" Margin="0,0,0,7">
+        <Grid>
+          <Button Content="GitHubへRemoteを発行" Click="PublishRemoteClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" Margin="0">
+            <Button.Style>
+              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasRemote}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Button.Style>
+          </Button>
+          <Grid>
+            <Grid.Style>
+              <Style TargetType="Grid">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasRemote}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Grid.Style>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="{Binding RemoteSummary}" FontSize="10" TextTrimming="CharacterEllipsis" />
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="↑ " Foreground="{StaticResource MutedBrush}" FontSize="10" />
+                <TextBlock Text="{Binding Ahead}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
+                <TextBlock Text="  ↓ " Foreground="{StaticResource MutedBrush}" FontSize="10" />
+                <TextBlock Text="{Binding Behind}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
+              </StackPanel>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Fetch" ToolTip="Remoteの参照を更新" Click="FetchClick" Style="{StaticResource ActionButtonStyle}" />
+            <Button Grid.Column="2" Content="Pull" ToolTip="Remoteの変更を取り込む" Click="PullClick" Style="{StaticResource ActionButtonStyle}" />
+            <Button Grid.Column="3" Content="Push" ToolTip="ローカルコミットを送信" Click="PushClick" Style="{StaticResource ActionButtonStyle}" />
+            <Button Grid.Column="4" Content="同期" ToolTip="PullしてからPush" Click="SyncClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+          </Grid>
+        </Grid>
+      </Border>
+
+      <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="#FFFFFF" Margin="0,0,0,6">
         <TextBox x:Name="CommitMessage" Height="52" BorderThickness="0" Padding="7" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="Transparent" Foreground="{StaticResource ForegroundBrush}" ToolTip="コミットメッセージ" />
       </Border>
-      <Grid Grid.Row="3" Margin="0,0,0,8">
+      <Grid Grid.Row="4" Margin="0,0,0,8">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
           <ColumnDefinition />
+          <ColumnDefinition Width="31" />
         </Grid.ColumnDefinitions>
-        <Button Content="✓  コミット" Click="CommitClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" />
-        <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <Button Content="✓  コミット" Click="CommitClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" Margin="0,0,2,0" />
+        <Button Grid.Column="1" Content="▼" ToolTip="コミット操作" Click="OpenCommitMenuClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" Padding="3" Margin="0">
+          <Button.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="コミット" Click="CommitClick" />
+              <MenuItem Header="コミット（修正）" Click="AmendCommitClick" />
+              <Separator />
+              <MenuItem Header="コミットしてPush" Click="CommitAndPushClick" />
+              <MenuItem Header="コミットして同期" Click="CommitAndSyncClick" />
+            </ContextMenu>
+          </Button.ContextMenu>
+        </Button>
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,4,0,0" />
       </Grid>
 
-      <Grid Grid.Row="7" Margin="0,2,0,3">
+      <Border Grid.Row="5" BorderBrush="#E6A700" BorderThickness="1" Background="#FFF9E6" Padding="8" Margin="0,0,0,8">
+        <Border.Style>
+          <Style TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding HasActiveOperation}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+              </DataTrigger>
+              <DataTrigger Binding="{Binding HasConflicts}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </Border.Style>
+        <StackPanel>
+          <Grid Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding OperationTitle}" FontWeight="SemiBold" />
+            <TextBlock Grid.Column="1" Text="{Binding Conflicts.Count}" Foreground="{StaticResource MutedBrush}" />
+          </Grid>
+          <TextBlock Text="各ファイルで採用する内容を選ぶと、自動的にステージされます。" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6" />
+          <ListBox ItemsSource="{Binding Conflicts}" MaxHeight="130" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="ローカル" Tag="{Binding}" ToolTip="ローカルの内容を採用" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
+                    <Button Content="Remote" Tag="{Binding}" ToolTip="Remoteから受信した内容を採用" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
+            <Button Content="中止" Click="AbortOperationClick" Style="{StaticResource ActionButtonStyle}" />
+            <Button Content="続行" Click="ContinueOperationClick" Margin="0">
+              <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                  <Setter Property="IsEnabled" Value="True" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding HasConflicts}" Value="True">
+                      <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </Button.Style>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Grid Grid.Row="8" Margin="0,2,0,3">
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
           <ColumnDefinition Width="Auto" />
@@ -171,7 +314,7 @@
         <TextBlock Text="変更" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="{Binding Changes.Count}" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-      <ListBox Grid.Row="8" x:Name="ChangesList" ItemsSource="{Binding Changes}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox Grid.Row="9" x:Name="ChangesList" ItemsSource="{Binding Changes}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Margin="0,2" VerticalAlignment="Top">
@@ -194,7 +337,7 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-    <Grid Grid.Row="4" Margin="0,2,0,3">
+    <Grid Grid.Row="6" Margin="0,2,0,3">
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
           <ColumnDefinition Width="Auto" />
@@ -202,7 +345,7 @@
         <TextBlock Text="ステージ済みの変更" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="{Binding Staged.Count}" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-    <ListBox Grid.Row="5" Grid.RowSpan="2" x:Name="StagedList" ItemsSource="{Binding Staged}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <ListBox Grid.Row="7" x:Name="StagedList" ItemsSource="{Binding Staged}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Margin="0,2">
@@ -222,7 +365,7 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-      <Grid Grid.Row="9" Margin="0,8,0,3">
+      <Grid Grid.Row="10" Margin="0,8,0,3">
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
           <ColumnDefinition Width="Auto" />
@@ -230,7 +373,7 @@
         <TextBlock Text="グラフ" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="履歴" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-      <ListBox Grid.Row="10" ItemsSource="{Binding History}" ItemContainerStyle="{StaticResource HistoryItemStyle}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CommitSelectionChanged">
+      <ListBox Grid.Row="11" ItemsSource="{Binding History}" ItemContainerStyle="{StaticResource HistoryItemStyle}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CommitSelectionChanged">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Margin="0,2" VerticalAlignment="Top">

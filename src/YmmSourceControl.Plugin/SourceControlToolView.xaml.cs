@@ -101,70 +101,134 @@ public partial class SourceControlToolView : UserControl
 
     private async void CommitClick(object sender, RoutedEventArgs e)
     {
+        await CommitAsync(amend: false, CommitFollowUp.None);
+    }
+
+    private async void AmendCommitClick(object sender, RoutedEventArgs e)
+    {
+        await CommitAsync(amend: true, CommitFollowUp.None);
+    }
+
+    private async void CommitAndPushClick(object sender, RoutedEventArgs e)
+    {
+        await CommitAsync(amend: false, CommitFollowUp.Push);
+    }
+
+    private async void CommitAndSyncClick(object sender, RoutedEventArgs e)
+    {
+        await CommitAsync(amend: false, CommitFollowUp.Sync);
+    }
+
+    private void OpenCommitMenuClick(object sender, RoutedEventArgs e)
+    {
+        OpenButtonMenu(sender);
+    }
+
+    private async Task CommitAsync(bool amend, CommitFollowUp followUp)
+    {
         if (ViewModel is null)
         {
             return;
         }
 
-        try
+        PullStrategy? syncStrategy = null;
+        if (followUp == CommitFollowUp.Sync)
         {
-            if (ViewModel.Staged.Count == 0)
+            syncStrategy = ChoosePullStrategy("コミット後、Remoteの変更を取り込んでからPushします。");
+            if (syncStrategy is null)
             {
-                if (ViewModel.Changes.Count == 0)
-                {
-                    ViewModel.SetError("コミットする変更がありません。");
-                    return;
-                }
+                return;
+            }
+        }
 
-                var shouldStageAll = ViewModel.SmartCommitPreference == SmartCommitPreference.Always;
-                if (ViewModel.SmartCommitPreference == SmartCommitPreference.Ask)
-                {
-                    var dialog = new SmartCommitDialog
-                    {
-                        Owner = Window.GetWindow(this),
-                    };
-                    if (dialog.ShowDialog() != true)
-                    {
-                        if (dialog.Choice == SmartCommitPreference.Never)
-                        {
-                            ViewModel.SetSmartCommitPreference(SmartCommitPreference.Never);
-                            ViewModel.SetError("ステージ済みの変更がありません。先に変更をステージしてください。");
-                        }
-
-                        return;
-                    }
-
-                    shouldStageAll = true;
-                    if (dialog.Choice == SmartCommitPreference.Always)
-                    {
-                        ViewModel.SetSmartCommitPreference(SmartCommitPreference.Always);
-                    }
-                }
-
-                if (ViewModel.SmartCommitPreference == SmartCommitPreference.Never)
-                {
-                    ViewModel.SetError("ステージ済みの変更がありません。先に変更をステージしてください。");
-                    return;
-                }
-
-                if (shouldStageAll)
-                {
-                    await ViewModel.StageAllAsync();
-                }
+        var committed = false;
+        await ExecuteAsync(async () =>
+        {
+            if (!await PrepareCommitAsync(amend))
+            {
+                return;
             }
 
-            await ViewModel.CommitAsync(CommitMessage.Text);
+            if (amend)
+            {
+                await ViewModel.AmendCommitAsync(CommitMessage.Text);
+            }
+            else
+            {
+                await ViewModel.CommitAsync(CommitMessage.Text);
+            }
+
+            committed = true;
+            if (followUp == CommitFollowUp.Sync)
+            {
+                await ViewModel.PullAsync(syncStrategy!.Value);
+                await ViewModel.PushAsync();
+            }
+            else if (followUp == CommitFollowUp.Push)
+            {
+                await PushWithRecoveryAsync();
+            }
+        });
+
+        if (committed)
+        {
             CommitMessage.Clear();
-            await RefreshAsync();
         }
-        catch (GitCommandException exception)
+    }
+
+    private async Task<bool> PrepareCommitAsync(bool amend)
+    {
+        if (ViewModel is null || ViewModel.Staged.Count > 0)
         {
-            ViewModel.SetError(exception);
+            return ViewModel is not null;
         }
-        catch (ArgumentException exception)
+
+        if (amend && ViewModel.Changes.Count == 0)
         {
-            ViewModel.SetError(exception.Message);
+            return true;
         }
+
+        if (ViewModel.Changes.Count == 0)
+        {
+            throw new InvalidOperationException("コミットする変更がありません。");
+        }
+
+        var shouldStageAll = ViewModel.SmartCommitPreference == SmartCommitPreference.Always;
+        if (ViewModel.SmartCommitPreference == SmartCommitPreference.Ask)
+        {
+            var dialog = new SmartCommitDialog
+            {
+                Owner = Window.GetWindow(this),
+            };
+            if (dialog.ShowDialog() != true)
+            {
+                if (dialog.Choice == SmartCommitPreference.Never)
+                {
+                    ViewModel.SetSmartCommitPreference(SmartCommitPreference.Never);
+                    throw new InvalidOperationException("ステージ済みの変更がありません。先に変更をステージしてください。");
+                }
+
+                return false;
+            }
+
+            shouldStageAll = true;
+            if (dialog.Choice == SmartCommitPreference.Always)
+            {
+                ViewModel.SetSmartCommitPreference(SmartCommitPreference.Always);
+            }
+        }
+
+        if (ViewModel.SmartCommitPreference == SmartCommitPreference.Never)
+        {
+            throw new InvalidOperationException("ステージ済みの変更がありません。先に変更をステージしてください。");
+        }
+
+        if (shouldStageAll)
+        {
+            await ViewModel.StageAllAsync();
+        }
+
+        return true;
     }
 
     private async void StageClick(object sender, RoutedEventArgs e)
@@ -197,6 +261,235 @@ public partial class SourceControlToolView : UserControl
         if (dialog.ShowDialog() == true)
         {
             await ExecuteAsync(() => ViewModel.DiscardAsync(file.Path));
+        }
+    }
+
+    private async void FetchClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not null)
+        {
+            await ExecuteAsync(ViewModel.FetchAsync);
+        }
+    }
+
+    private async void PullClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        var strategy = ChoosePullStrategy("Remoteの変更を現在のブランチへ取り込みます。");
+        if (strategy is not null)
+        {
+            await ExecuteAsync(() => ViewModel.PullAsync(strategy.Value));
+        }
+    }
+
+    private async void PushClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not null)
+        {
+            await ExecuteAsync(PushWithRecoveryAsync);
+        }
+    }
+
+    private async void SyncClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        var strategy = ChoosePullStrategy("Remoteの変更を取り込んだ後、ローカルコミットをPushします。");
+        if (strategy is null)
+        {
+            return;
+        }
+
+        await ExecuteAsync(async () =>
+        {
+            await ViewModel.PullAsync(strategy.Value);
+            await ViewModel.PushAsync();
+        });
+    }
+
+    private async void PublishRemoteClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel?.RepositoryRoot is not { } repositoryRoot)
+        {
+            return;
+        }
+
+        var repositoryName = Path.GetFileName(repositoryRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var dialog = new RemotePublishDialog(repositoryName)
+        {
+            Owner = Window.GetWindow(this),
+        };
+        if (dialog.ShowDialog() == true && dialog.Options is not null)
+        {
+            await ExecuteAsync(() => ViewModel.PublishRemoteAsync(dialog.Options));
+        }
+    }
+
+    private async void MergeBranchClick(object sender, RoutedEventArgs e)
+    {
+        await RunBranchOperationAsync(PullStrategy.Merge);
+    }
+
+    private async void RebaseBranchClick(object sender, RoutedEventArgs e)
+    {
+        await RunBranchOperationAsync(PullStrategy.Rebase);
+    }
+
+    private void OpenRepositoryMenuClick(object sender, RoutedEventArgs e)
+    {
+        OpenButtonMenu(sender);
+    }
+
+    private async Task RunBranchOperationAsync(PullStrategy strategy)
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<string> branches;
+        try
+        {
+            branches = await ViewModel.GetBranchTargetsAsync();
+        }
+        catch (GitCommandException exception)
+        {
+            ViewModel.SetError(exception);
+            return;
+        }
+
+        var isRebase = strategy == PullStrategy.Rebase;
+        var dialog = new BranchOperationDialog(
+            isRebase ? "ブランチをRebase" : "ブランチをMerge",
+            isRebase ? "現在のブランチをRebase" : "現在のブランチへMerge",
+            isRebase
+                ? "現在のブランチのコミットを、選択したブランチの先頭へ載せ直します。"
+                : "選択したブランチの変更を、現在のブランチへ統合します。",
+            isRebase ? "Rebase" : "Merge",
+            branches)
+        {
+            Owner = Window.GetWindow(this),
+        };
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        await ExecuteAsync(() => isRebase
+            ? ViewModel.RebaseAsync(dialog.TargetBranch)
+            : ViewModel.MergeAsync(dialog.TargetBranch));
+    }
+
+    private async void KeepLocalConflictClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not null && (sender as Button)?.Tag is GitFileStatus file)
+        {
+            await ExecuteAsync(() => ViewModel.ResolveConflictAsync(file, ConflictResolution.KeepLocal));
+        }
+    }
+
+    private async void KeepIncomingConflictClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not null && (sender as Button)?.Tag is GitFileStatus file)
+        {
+            await ExecuteAsync(() => ViewModel.ResolveConflictAsync(file, ConflictResolution.KeepIncoming));
+        }
+    }
+
+    private async void ContinueOperationClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not null)
+        {
+            await ExecuteAsync(ViewModel.ContinueOperationAsync);
+        }
+    }
+
+    private async void AbortOperationClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"進行中の{ViewModel.OperationTitle.Replace("を解決中", string.Empty, StringComparison.Ordinal)}を中止し、開始前の状態へ戻しますか？",
+            "Git操作を中止",
+            MessageBoxButton.OKCancel,
+            MessageBoxImage.Warning);
+        if (result == MessageBoxResult.OK)
+        {
+            await ExecuteAsync(ViewModel.AbortOperationAsync);
+        }
+    }
+
+    private PullStrategy? ChoosePullStrategy(string reason)
+    {
+        if (ViewModel is null)
+        {
+            return null;
+        }
+
+        var savedStrategy = ViewModel.PullStrategyPreference.ToStrategy();
+        if (savedStrategy is not null)
+        {
+            return savedStrategy;
+        }
+
+        var dialog = new PullStrategyDialog(reason)
+        {
+            Owner = Window.GetWindow(this),
+        };
+        if (dialog.ShowDialog() != true)
+        {
+            return null;
+        }
+
+        if (dialog.ShouldRemember)
+        {
+            ViewModel.SetPullStrategyPreference(dialog.Strategy.ToPreference());
+        }
+
+        return dialog.Strategy;
+    }
+
+    private async Task PushWithRecoveryAsync()
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await ViewModel.PushAsync();
+        }
+        catch (GitPushRejectedException exception)
+        {
+            var strategy = ChoosePullStrategy(
+                "Remoteに未取得の変更があるためPushが拒否されました。取り込み方法を選択すると、Pull後にPushを再試行します。");
+            if (strategy is null)
+            {
+                throw new GitCommandException(exception.Message, exception.ExitCode, exception.StandardError);
+            }
+
+            await ViewModel.PullAsync(strategy.Value);
+            await ViewModel.PushAsync();
+        }
+    }
+
+    private static void OpenButtonMenu(object sender)
+    {
+        if (sender is Button { ContextMenu: not null } button)
+        {
+            button.ContextMenu.PlacementTarget = button;
+            button.ContextMenu.IsOpen = true;
         }
     }
 
@@ -323,14 +616,28 @@ public partial class SourceControlToolView : UserControl
             return;
         }
 
+        Exception? failure = null;
         try
         {
             await operation();
-            await RefreshAsync();
         }
         catch (GitCommandException exception)
         {
-            ViewModel.SetError(exception);
+            failure = exception;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            failure = exception;
+        }
+
+        await RefreshAsync();
+        if (failure is GitCommandException gitException)
+        {
+            ViewModel.SetError(gitException);
+        }
+        else if (failure is not null)
+        {
+            ViewModel.SetError(failure.Message);
         }
     }
 
@@ -376,5 +683,12 @@ public partial class SourceControlToolView : UserControl
         return relativePath.Equals(".git", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith($".git{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith($".git{Path.AltDirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private enum CommitFollowUp
+    {
+        None,
+        Push,
+        Sync,
     }
 }
