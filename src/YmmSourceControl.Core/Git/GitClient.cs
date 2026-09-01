@@ -181,31 +181,10 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         {
             using var beforeDocument = System.Text.Json.JsonDocument.Parse(before);
             using var afterDocument = System.Text.Json.JsonDocument.Parse(after);
-            var beforeValues = FlattenJson(beforeDocument.RootElement);
-            var afterValues = FlattenJson(afterDocument.RootElement);
             var changes = new List<GitCommitChange>();
 
-            foreach (var key in beforeValues.Keys.Union(afterValues.Keys).Order())
-            {
-                beforeValues.TryGetValue(key, out var beforeValue);
-                afterValues.TryGetValue(key, out var afterValue);
-                if (string.Equals(beforeValue, afterValue, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                var description = beforeValue is null
-                    ? $"{FormatJsonPath(key)} が追加されました（{FormatValue(afterValue)}）"
-                    : afterValue is null
-                        ? $"{FormatJsonPath(key)} が削除されました"
-                        : $"{FormatJsonPath(key)}：{FormatValue(beforeValue)} → {FormatValue(afterValue)}";
-                changes.Add(new GitCommitChange(file.Path, description, beforeValue, afterValue));
-                if (changes.Count >= 100)
-                {
-                    changes.Add(new GitCommitChange(file.Path, "変更が多いため、最初の100件だけ表示しています", null, null));
-                    break;
-                }
-            }
+            CompareJson(file.Path, beforeDocument.RootElement, afterDocument.RootElement, "$", changes);
+            SuppressDerivedCharacterChanges(changes);
 
             return changes.Count == 0
                 ? [new GitCommitChange(file.Path, "ファイルが更新されました（表示できる項目の変更はありません）", null, null)]
@@ -217,43 +196,276 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         }
     }
 
-    private static Dictionary<string, string> FlattenJson(System.Text.Json.JsonElement element)
-    {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        FlattenJson(element, "$", result);
-        return result;
-    }
-
-    private static void FlattenJson(
-        System.Text.Json.JsonElement element,
+    private static void CompareJson(
+        string filePath,
+        System.Text.Json.JsonElement before,
+        System.Text.Json.JsonElement after,
         string path,
-        Dictionary<string, string> result)
+        List<GitCommitChange> changes)
     {
-        switch (element.ValueKind)
+        if (before.ValueKind != after.ValueKind)
+        {
+            AddValueChange(filePath, path, before, after, changes);
+            return;
+        }
+
+        switch (after.ValueKind)
         {
             case System.Text.Json.JsonValueKind.Object:
-                foreach (var property in element.EnumerateObject())
+                var beforeProperties = before.EnumerateObject()
+                    .Select(property => property.Name)
+                    .ToHashSet(StringComparer.Ordinal);
+                var afterProperties = after.EnumerateObject()
+                    .Select(property => property.Name)
+                    .ToHashSet(StringComparer.Ordinal);
+
+                foreach (var propertyName in beforeProperties.Union(afterProperties).Order())
                 {
-                    if (property.Name is "ID" or "SavedState" or "TypeName")
+                    if (ShouldIgnoreProperty(propertyName, path))
                     {
                         continue;
                     }
 
-                    FlattenJson(property.Value, $"{path}.{property.Name}", result);
+                    var propertyPath = $"{path}.{propertyName}";
+                    var hasBefore = before.TryGetProperty(propertyName, out var beforeProperty);
+                    var hasAfter = after.TryGetProperty(propertyName, out var afterProperty);
+                    if (!hasBefore)
+                    {
+                        AddValueChange(filePath, propertyPath, null, afterProperty, changes);
+                    }
+                    else if (!hasAfter)
+                    {
+                        AddValueChange(filePath, propertyPath, beforeProperty, null, changes);
+                    }
+                    else
+                    {
+                        CompareJson(filePath, beforeProperty, afterProperty, propertyPath, changes);
+                    }
                 }
                 break;
             case System.Text.Json.JsonValueKind.Array:
-                var index = 0;
-                foreach (var item in element.EnumerateArray())
-                {
-                    FlattenJson(item, $"{path}[{index}]", result);
-                    index++;
-                }
+                CompareArray(filePath, path, before.EnumerateArray().ToArray(), after.EnumerateArray().ToArray(), changes);
                 break;
             default:
-                result[path] = element.ToString();
+                if (!string.Equals(before.ToString(), after.ToString(), StringComparison.Ordinal))
+                {
+                    AddValueChange(filePath, path, before, after, changes);
+                }
                 break;
         }
+    }
+
+    private static void CompareArray(
+        string filePath,
+        string path,
+        IReadOnlyList<System.Text.Json.JsonElement> before,
+        IReadOnlyList<System.Text.Json.JsonElement> after,
+        List<GitCommitChange> changes)
+    {
+        var beforeIndex = CreateUniqueItemIndex(before);
+        var afterIndex = CreateUniqueItemIndex(after);
+
+        if (beforeIndex.Count > 0 || afterIndex.Count > 0)
+        {
+            var matchedBefore = new bool[before.Count];
+            for (var afterIndexPosition = 0; afterIndexPosition < after.Count; afterIndexPosition++)
+            {
+                var key = GetArrayItemKey(after[afterIndexPosition]);
+                if (key is not null && beforeIndex.TryGetValue(key, out var beforeIndexPosition))
+                {
+                    matchedBefore[beforeIndexPosition] = true;
+                    CompareJson(filePath, before[beforeIndexPosition], after[afterIndexPosition], $"{path}[{afterIndexPosition}]", changes);
+                }
+                else
+                {
+                    AddArrayItemChange(filePath, path, after[afterIndexPosition], added: true, changes);
+                }
+            }
+
+            for (var beforeIndexPosition = 0; beforeIndexPosition < before.Count; beforeIndexPosition++)
+            {
+                if (!matchedBefore[beforeIndexPosition])
+                {
+                    AddArrayItemChange(filePath, path, before[beforeIndexPosition], added: false, changes);
+                }
+            }
+
+            return;
+        }
+
+        var commonCount = Math.Min(before.Count, after.Count);
+        for (var index = 0; index < commonCount; index++)
+        {
+            CompareJson(filePath, before[index], after[index], $"{path}[{index}]", changes);
+        }
+
+        for (var index = commonCount; index < after.Count; index++)
+        {
+            AddArrayItemChange(filePath, path, after[index], added: true, changes);
+        }
+
+        for (var index = commonCount; index < before.Count; index++)
+        {
+            AddArrayItemChange(filePath, path, before[index], added: false, changes);
+        }
+    }
+
+    private static Dictionary<string, int> CreateUniqueItemIndex(IReadOnlyList<System.Text.Json.JsonElement> items)
+    {
+        var result = new Dictionary<string, int>(StringComparer.Ordinal);
+        var duplicates = new HashSet<string>(StringComparer.Ordinal);
+        for (var index = 0; index < items.Count; index++)
+        {
+            var key = GetArrayItemKey(items[index]);
+            if (key is null)
+            {
+                continue;
+            }
+
+            if (!result.TryAdd(key, index))
+            {
+                duplicates.Add(key);
+            }
+        }
+
+        foreach (var duplicate in duplicates)
+        {
+            result.Remove(duplicate);
+        }
+
+        return result;
+    }
+
+    private static string? GetArrayItemKey(System.Text.Json.JsonElement item)
+    {
+        if (item.ValueKind != System.Text.Json.JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        if (item.TryGetProperty("ID", out var id) && !string.IsNullOrWhiteSpace(id.ToString()))
+        {
+            return $"id:{id}";
+        }
+
+        var type = GetStringProperty(item, "$type");
+        var name = GetStringProperty(item, "Name");
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            return $"name:{name}";
+        }
+
+        var characterName = GetStringProperty(item, "CharacterName");
+        var frame = GetStringProperty(item, "Frame");
+        var layer = GetStringProperty(item, "Layer");
+        return string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(frame) || string.IsNullOrWhiteSpace(layer)
+            ? null
+            : $"item:{type}|{characterName}|{frame}|{layer}";
+    }
+
+    private static void AddArrayItemChange(
+        string filePath,
+        string path,
+        System.Text.Json.JsonElement item,
+        bool added,
+        List<GitCommitChange> changes)
+    {
+        var collectionName = FormatCollectionName(path);
+        var description = DescribeArrayItem(collectionName, item, added);
+        changes.Add(new GitCommitChange(filePath, description, null, null));
+    }
+
+    private static string DescribeArrayItem(string collectionName, System.Text.Json.JsonElement item, bool added)
+    {
+        var verb = added ? "追加しました" : "削除しました";
+        if (collectionName == "アイテム" && item.ValueKind == System.Text.Json.JsonValueKind.Object)
+        {
+            var text = GetStringProperty(item, "Serif");
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                return $"字幕「{FormatShortText(text)}」を{verb}";
+            }
+        }
+
+        if (collectionName == "キャラクター" && item.ValueKind == System.Text.Json.JsonValueKind.Object)
+        {
+            var name = GetStringProperty(item, "Name");
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                return $"キャラクター「{FormatShortText(name)}」を{verb}";
+            }
+        }
+
+        return $"{collectionName}を{verb}";
+    }
+
+    private static string FormatCollectionName(string path)
+    {
+        var propertyName = path.Split('.', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
+        return propertyName switch
+        {
+            "Timelines" => "タイムライン",
+            "Items" => "アイテム",
+            "Characters" => "キャラクター",
+            "LayerSettings" => "レイヤー設定",
+            _ => "項目",
+        };
+    }
+
+    private static void AddValueChange(
+        string filePath,
+        string path,
+        System.Text.Json.JsonElement? before,
+        System.Text.Json.JsonElement? after,
+        List<GitCommitChange> changes)
+    {
+        if (changes.Count >= 20)
+        {
+            return;
+        }
+
+        var beforeValue = before?.ToString();
+        var afterValue = after?.ToString();
+        if (string.Equals(beforeValue, afterValue, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var description = before is null
+            ? $"{FormatJsonPath(path)} が追加されました（{FormatValue(afterValue)}）"
+            : after is null
+                ? $"{FormatJsonPath(path)} が削除されました"
+                : $"{FormatJsonPath(path)}：{FormatValue(beforeValue)} → {FormatValue(afterValue)}";
+        changes.Add(new GitCommitChange(filePath, description, beforeValue, afterValue));
+    }
+
+    private static bool ShouldIgnoreProperty(string propertyName, string path) => propertyName is
+        "ID" or "SavedState" or "TypeName" or "$type" or
+        "LayoutXml" or "ToolStates" or "VoiceCache" or "Hatsuon" or "Pronounce" or
+        "LipSyncFrames" or "VoiceLength" or "CurrentFrame" or "MaxLayer"
+        || propertyName == "Length" && path.Contains(".Timelines[", StringComparison.Ordinal);
+
+    private static void SuppressDerivedCharacterChanges(List<GitCommitChange> changes)
+    {
+        if (!changes.Any(change => change.Description.StartsWith("字幕", StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        changes.RemoveAll(change => change.Description.StartsWith("キャラクター", StringComparison.Ordinal));
+    }
+
+    private static string? GetStringProperty(System.Text.Json.JsonElement item, string propertyName)
+    {
+        return item.TryGetProperty(propertyName, out var property)
+            ? property.ValueKind == System.Text.Json.JsonValueKind.String ? property.GetString() : property.ToString()
+            : null;
+    }
+
+    private static string FormatShortText(string value)
+    {
+        var normalized = value.Replace("\r", " ").Replace("\n", " ").Trim();
+        return normalized.Length > 50 ? $"{normalized[..47]}..." : normalized;
     }
 
     private static string FormatJsonPath(string path)

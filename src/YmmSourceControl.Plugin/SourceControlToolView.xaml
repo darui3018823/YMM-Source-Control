@@ -146,7 +146,7 @@
       <ListBox Grid.Row="8" x:Name="ChangesList" ItemsSource="{Binding Changes}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <Grid Margin="0,2">
+            <Grid Margin="0,2" VerticalAlignment="Top">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="23" />
                 <ColumnDefinition />
@@ -210,8 +210,8 @@
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition />
               </Grid.ColumnDefinitions>
-              <TextBlock Text="●" Foreground="{StaticResource AccentBrush}" FontSize="10" HorizontalAlignment="Center" />
-              <StackPanel Grid.Column="1">
+              <TextBlock Text="●" Foreground="{StaticResource AccentBrush}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Top">
                 <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" />
                 <StackPanel Orientation="Horizontal">
                   <TextBlock Text="{Binding Author}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
