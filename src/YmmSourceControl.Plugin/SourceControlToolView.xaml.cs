@@ -178,6 +178,7 @@ public partial class SourceControlToolView : UserControl
             {
                 Owner = Window.GetWindow(this),
             };
+            ViewModel.SetError(string.Empty);
             detailsWindow.Show();
         }
         catch (GitCommandException exception)

@@ -233,21 +233,17 @@
       <ListBox Grid.Row="10" ItemsSource="{Binding History}" ItemContainerStyle="{StaticResource HistoryItemStyle}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CommitSelectionChanged">
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <Grid Margin="0,2">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="20" />
-                <ColumnDefinition />
-              </Grid.ColumnDefinitions>
-              <TextBlock Text="●" Foreground="{StaticResource AccentBrush}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0" />
-              <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" />
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{Binding Author}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Text="  ·  " Foreground="{StaticResource MutedBrush}" FontSize="10" />
-                  <TextBlock Text="{Binding Date}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
-                </StackPanel>
+            <StackPanel Margin="0,2" VerticalAlignment="Top">
+              <TextBlock TextTrimming="CharacterEllipsis">
+                <Run Text="●  " Foreground="{StaticResource AccentBrush}" FontSize="10" />
+                <Run Text="{Binding DisplayText}" />
+              </TextBlock>
+              <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                <TextBlock Text="{Binding Author}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="  ·  " Foreground="{StaticResource MutedBrush}" FontSize="10" />
+                <TextBlock Text="{Binding Date}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
               </StackPanel>
-            </Grid>
+            </StackPanel>
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
