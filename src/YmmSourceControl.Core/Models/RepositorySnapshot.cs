@@ -11,7 +11,7 @@ public sealed record RepositorySnapshot(
     GitOperationState OperationState)
 {
     public IReadOnlyList<GitFileStatus> Changes => Files
-        .Where(x => x.Kind != GitFileKind.Conflicted && (!x.IsStaged || x.IsUntracked))
+        .Where(x => x.Kind != GitFileKind.Conflicted && (!x.IsStaged || x.IsWorktreeChanged))
         .ToArray();
 
     public IReadOnlyList<GitFileStatus> Staged => Files
