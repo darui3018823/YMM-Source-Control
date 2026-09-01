@@ -221,6 +221,10 @@
                   <Setter Property="IsHitTestVisible" Value="False" />
                   <Setter Property="Focusable" Value="False" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding IsCommitting}" Value="True">
+                  <Setter Property="IsHitTestVisible" Value="False" />
+                  <Setter Property="Focusable" Value="False" />
+                </DataTrigger>
               </Style.Triggers>
             </Style>
           </Button.Style>
@@ -233,6 +237,9 @@
                     <DataTrigger Binding="{Binding IsPublishingRemote}" Value="True">
                       <Setter Property="Visibility" Value="Collapsed" />
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding IsCommitting}" Value="True">
+                      <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
                   </Style.Triggers>
                 </Style>
               </TextBlock.Style>
@@ -243,6 +250,9 @@
                   <Setter Property="Visibility" Value="Collapsed" />
                   <Style.Triggers>
                     <DataTrigger Binding="{Binding IsPublishingRemote}" Value="True">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsCommitting}" Value="True">
                       <Setter Property="Visibility" Value="Visible" />
                     </DataTrigger>
                   </Style.Triggers>
@@ -262,7 +272,18 @@
                   </EventTrigger>
                 </Path.Triggers>
               </Path>
-              <TextBlock Text="発行中…" Foreground="White" />
+              <TextBlock Foreground="White">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Text" Value="発行中…" />
+                    <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCommitting}" Value="True">
+                  <Setter Property="Text" Value="コミット中…" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
             </StackPanel>
           </Grid>
         </Button>
@@ -273,6 +294,9 @@
               <Style.Triggers>
                 <DataTrigger Binding="{Binding IsPublishRemotePrimaryAction}" Value="True">
                   <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsCommitting}" Value="True">
+                  <Setter Property="IsEnabled" Value="False" />
                 </DataTrigger>
               </Style.Triggers>
             </Style>

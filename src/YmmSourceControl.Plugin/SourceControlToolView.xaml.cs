@@ -139,27 +139,30 @@ public partial class SourceControlToolView : UserControl
         }
 
         var committed = false;
-        await ExecuteAsync(async () =>
+        await ViewModel.RunCommitAsync(async () =>
         {
-            if (!await PrepareCommitAsync(amend))
+            await ExecuteAsync(async () =>
             {
-                return;
-            }
+                if (!await PrepareCommitAsync(amend))
+                {
+                    return;
+                }
 
-            if (amend)
-            {
-                await ViewModel.AmendCommitAsync(CommitMessage.Text);
-            }
-            else
-            {
-                await ViewModel.CommitAsync(CommitMessage.Text);
-            }
+                if (amend)
+                {
+                    await ViewModel.AmendCommitAsync(CommitMessage.Text);
+                }
+                else
+                {
+                    await ViewModel.CommitAsync(CommitMessage.Text);
+                }
 
-            committed = true;
-            if (followUp == CommitFollowUp.Push)
-            {
-                await PushWithRecoveryAsync();
-            }
+                committed = true;
+                if (followUp == CommitFollowUp.Push)
+                {
+                    await PushWithRecoveryAsync();
+                }
+            });
         });
 
         if (committed)
