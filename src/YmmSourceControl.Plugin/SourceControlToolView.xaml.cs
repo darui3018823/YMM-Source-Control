@@ -126,11 +126,6 @@ public partial class SourceControlToolView : UserControl
         await CommitAsync(amend: false, CommitFollowUp.Push);
     }
 
-    private async void CommitAndSyncClick(object sender, RoutedEventArgs e)
-    {
-        await CommitAsync(amend: false, CommitFollowUp.Sync);
-    }
-
     private void OpenCommitMenuClick(object sender, RoutedEventArgs e)
     {
         OpenButtonMenu(sender);
@@ -141,16 +136,6 @@ public partial class SourceControlToolView : UserControl
         if (ViewModel is null)
         {
             return;
-        }
-
-        PullStrategy? syncStrategy = null;
-        if (followUp == CommitFollowUp.Sync)
-        {
-            syncStrategy = ChoosePullStrategy("コミット後、Remoteの変更を取り込んでからPushします。");
-            if (syncStrategy is null)
-            {
-                return;
-            }
         }
 
         var committed = false;
@@ -171,12 +156,7 @@ public partial class SourceControlToolView : UserControl
             }
 
             committed = true;
-            if (followUp == CommitFollowUp.Sync)
-            {
-                await ViewModel.PullAsync(syncStrategy!.Value);
-                await ViewModel.PushAsync();
-            }
-            else if (followUp == CommitFollowUp.Push)
+            if (followUp == CommitFollowUp.Push)
             {
                 await PushWithRecoveryAsync();
             }
@@ -304,26 +284,6 @@ public partial class SourceControlToolView : UserControl
         {
             await ExecuteAsync(PushWithRecoveryAsync);
         }
-    }
-
-    private async void SyncClick(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel is null)
-        {
-            return;
-        }
-
-        var strategy = ChoosePullStrategy("Remoteの変更を取り込んだ後、ローカルコミットをPushします。");
-        if (strategy is null)
-        {
-            return;
-        }
-
-        await ExecuteAsync(async () =>
-        {
-            await ViewModel.PullAsync(strategy.Value);
-            await ViewModel.PushAsync();
-        });
     }
 
     private async void PublishRemoteClick(object sender, RoutedEventArgs e)
@@ -713,6 +673,5 @@ public partial class SourceControlToolView : UserControl
     {
         None,
         Push,
-        Sync,
     }
 }

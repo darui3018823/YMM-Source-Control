@@ -97,7 +97,6 @@
               <MenuItem Header="Fetch" Click="FetchClick" />
               <MenuItem Header="Pull..." Click="PullClick" />
               <MenuItem Header="Push" Click="PushClick" />
-              <MenuItem Header="同期" Click="SyncClick" />
               <Separator />
               <MenuItem Header="ブランチをMerge..." Click="MergeBranchClick" />
               <MenuItem Header="ブランチをRebase..." Click="RebaseBranchClick" />
@@ -184,7 +183,6 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="{Binding RemoteSummary}" FontSize="10" TextTrimming="CharacterEllipsis" />
@@ -197,8 +195,7 @@
           </StackPanel>
           <Button Grid.Column="1" Content="Fetch" ToolTip="Remoteの参照を更新" Click="FetchClick" Style="{StaticResource ActionButtonStyle}" />
           <Button Grid.Column="2" Content="Pull" ToolTip="Remoteの変更を取り込む" Click="PullClick" Style="{StaticResource ActionButtonStyle}" />
-          <Button Grid.Column="3" Content="Push" ToolTip="ローカルコミットを送信" Click="PushClick" Style="{StaticResource ActionButtonStyle}" />
-          <Button Grid.Column="4" Content="同期" ToolTip="PullしてからPush" Click="SyncClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+          <Button Grid.Column="3" Content="Push" ToolTip="ローカルコミットを送信" Click="PushClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
         </Grid>
       </Border>
 
@@ -286,7 +283,6 @@
               <MenuItem Header="コミット（修正）" Click="AmendCommitClick" />
               <Separator />
               <MenuItem Header="コミットしてPush" Click="CommitAndPushClick" />
-              <MenuItem Header="コミットして同期" Click="CommitAndSyncClick" />
             </ContextMenu>
           </Button.ContextMenu>
         </Button>
