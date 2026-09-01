@@ -13,6 +13,7 @@ public partial class SourceControlToolView : UserControl
     private FileSystemWatcher? watcher;
     private string? watchedRoot;
     private FileDiffWindow? diffWindow;
+    private bool isInitializing;
 
     public SourceControlToolView()
     {
@@ -32,8 +33,18 @@ public partial class SourceControlToolView : UserControl
             return;
         }
 
-        await ViewModel.RefreshAsync();
-        ConfigureWatcher(ViewModel.RepositoryRoot);
+        isInitializing = true;
+        try
+        {
+            await ViewModel.RefreshAsync();
+            ChangesList.SelectedItem = null;
+            StagedList.SelectedItem = null;
+            ConfigureWatcher(ViewModel.RepositoryRoot);
+        }
+        finally
+        {
+            isInitializing = false;
+        }
     }
 
     private async void RefreshClick(object sender, RoutedEventArgs e)
@@ -191,6 +202,11 @@ public partial class SourceControlToolView : UserControl
 
     private async void FileSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (isInitializing)
+        {
+            return;
+        }
+
         var file = ChangesList.SelectedItem as GitFileStatus ?? StagedList.SelectedItem as GitFileStatus;
         if (file is null || ViewModel is null)
         {
