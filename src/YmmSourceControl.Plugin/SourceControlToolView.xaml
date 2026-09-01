@@ -135,7 +135,7 @@
         <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
       </Grid>
 
-      <Grid Grid.Row="4" Margin="0,2,0,3">
+      <Grid Grid.Row="7" Margin="0,2,0,3">
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
           <ColumnDefinition Width="Auto" />
@@ -143,7 +143,7 @@
         <TextBlock Text="変更" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="{Binding Changes.Count}" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-      <ListBox Grid.Row="5" Grid.RowSpan="2" x:Name="ChangesList" ItemsSource="{Binding Changes}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox Grid.Row="8" x:Name="ChangesList" ItemsSource="{Binding Changes}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Margin="0,2">
@@ -166,7 +166,7 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-      <Grid Grid.Row="7" Margin="0,8,0,3">
+    <Grid Grid.Row="4" Margin="0,2,0,3">
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
           <ColumnDefinition Width="Auto" />
@@ -174,7 +174,7 @@
         <TextBlock Text="ステージ済みの変更" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="{Binding Staged.Count}" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-      <ListBox Grid.Row="8" x:Name="StagedList" ItemsSource="{Binding Staged}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <ListBox Grid.Row="5" Grid.RowSpan="2" x:Name="StagedList" ItemsSource="{Binding Staged}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" SelectionChanged="FileSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Margin="0,2">
