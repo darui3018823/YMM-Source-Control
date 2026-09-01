@@ -16,8 +16,32 @@ YukkuriMovieMaker 4 に、Git の変更確認・ステージング・コミッ�
 - 現在ブランチの表示
 - Changes / Staged の表示
 - stage / unstage / discard
-- commit
+- commit / amend / commit and push / commit and sync
+- fetch / pull / push / sync
+- Merge または Rebase を選択する Pull（選択の保存に対応）
+- ブランチを指定した Merge / Rebase
+- Merge / Rebase 競合のローカル・Remote選択、続行、中止
+- upstream と ahead / behind の表示
+- `gh` CLI による GitHub Remote の発行
 - ファイル変更を検知した自動更新（短い debounce 付き）
+
+## Remote操作
+
+Remoteがあるリポジトリでは、Source ControlペインからFetch、Pull、Push、同期を実行できます。PullではMergeまたはRebaseを選択でき、「この選択を保存し、次回から確認しない」を有効にすると、そのツール状態へ方式を保存します。
+
+Pushがnon-fast-forwardで拒否された場合は、MergeまたはRebaseでRemoteの変更を取り込んでからPushを再試行します。強制Pushは実行しません。
+
+MergeまたはRebaseで競合したファイルはペイン内の競合セクションへ表示されます。ファイルごとにローカルまたはRemoteの内容を採用し、すべて解決した後に操作を続行できます。操作全体を中止して開始前へ戻すこともできます。
+
+## GitHubへRemoteを発行
+
+Remoteがないリポジトリでは「GitHubへRemoteを発行」からGitHubリポジトリを作成できます。認証処理はプラグイン内に持たず、PATH上のGitHub CLI (`gh`) とその既存ログイン状態を使用します。
+
+```powershell
+gh auth login
+```
+
+発行ダイアログではリポジトリ名、Remote名、説明、公開範囲、作成後にPushするかを指定できます。
 
 ## 起動
 
