@@ -1,0 +1,69 @@
+name: バグ報告
+description: 不具合を報告する
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        再現手順と環境情報をできるだけ詳しく記載してください。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 不具合の概要
+      description: 何が起きたかを記載してください。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 再現するための手順を番号付きで記載してください。
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した動作
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+    validations:
+      required: true
+
+  - type: input
+    id: ymm4-version
+    attributes:
+      label: YMM4 のバージョン
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: プラグインのバージョンまたはコミット
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境
+      description: Windows、.NET、Git、GitHub CLI のバージョンなどを記載してください。
+      placeholder: |
+        - Windows:
+        - Git:
+        - GitHub CLI:
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・スクリーンショット
+      description: 個人情報やトークンを削除して貼り付けてください。
+      render: text
