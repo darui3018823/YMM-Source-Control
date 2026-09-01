@@ -178,12 +178,11 @@ public partial class SourceControlToolView : UserControl
             return;
         }
 
-        var result = MessageBox.Show(
-            $"「{file.Path}」の変更を破棄しますか？",
-            "変更を破棄",
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning);
-        if (result == MessageBoxResult.OK)
+        var dialog = new DiscardChangesDialog(file.Path)
+        {
+            Owner = Window.GetWindow(this),
+        };
+        if (dialog.ShowDialog() == true)
         {
             await ExecuteAsync(() => ViewModel.DiscardAsync(file.Path));
         }
