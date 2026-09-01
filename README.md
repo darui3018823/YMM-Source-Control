@@ -125,6 +125,12 @@ dotnet build src/YmmSourceControl.Plugin/YmmSourceControl.Plugin.csproj `
 - `src/YmmSourceControl.App`：単体プレビュー用 WPF アプリ
 - `ps1`：ビルド用 PowerShell スクリプト
 
+## 開発・貢献
+
+- [コントリビューションガイド](CONTRIBUTING.md)
+- [行動規範](CODE_OF_CONDUCT.md)
+- [セキュリティポリシー](SECURITY.md)
+
 ## License
 
 BSD 3-Clause License。詳細は [LICENSE](LICENSE) を参照してください。
