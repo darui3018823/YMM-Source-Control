@@ -7,4 +7,3 @@ public sealed class GitCommandException(string message, int exitCode, string sta
 
     public string StandardError { get; } = standardError;
 }
-

@@ -16,4 +16,3 @@ public interface IGitClient
 
     Task CommitAsync(string message, CancellationToken cancellationToken = default);
 }
-

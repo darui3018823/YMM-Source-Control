@@ -9,4 +9,3 @@ public sealed record RepositorySnapshot(
 
     public IReadOnlyList<GitFileStatus> Staged => Files.Where(x => x.IsStaged).ToArray();
 }
-
