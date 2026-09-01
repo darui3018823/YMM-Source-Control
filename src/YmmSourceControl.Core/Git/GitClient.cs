@@ -1043,7 +1043,10 @@ public sealed class GitClient(string workingDirectory) : IGitClient
             return GitFileKind.Untracked;
         }
 
-        if (indexCode == "U" || worktreeCode == "U" || indexCode == "A" && worktreeCode == "A")
+        if (indexCode == "U"
+            || worktreeCode == "U"
+            || indexCode == "A" && worktreeCode == "A"
+            || indexCode == "D" && worktreeCode == "D")
         {
             return GitFileKind.Conflicted;
         }
