@@ -234,10 +234,10 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Margin="0,2" VerticalAlignment="Top">
-              <TextBlock TextTrimming="CharacterEllipsis">
-                <Run Text="●  " Foreground="{StaticResource AccentBrush}" FontSize="10" />
-                <Run Text="{Binding DisplayText, Mode=OneWay}" />
-              </TextBlock>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="●" Foreground="{StaticResource AccentBrush}" FontSize="10" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding DisplayText, Mode=OneWay}" TextTrimming="CharacterEllipsis" Margin="7,0,0,0" />
+              </StackPanel>
               <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
                 <TextBlock Text="{Binding Author}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
                 <TextBlock Text="  ·  " Foreground="{StaticResource MutedBrush}" FontSize="10" />
