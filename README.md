@@ -59,7 +59,26 @@ YMM4 の API DLL を参照できる環境で、`IToolPlugin` のアダプター�
 
 ## YMM4 プラグインとしてビルド
 
-YMM4 本体のディレクトリを指定して、プラグインを Release ビルドします。
+`.env.example` を `.env` にコピーし、YMM4 本体のディレクトリを `YMM4_ROOT` に設定します。
+
+```powershell
+Copy-Item .env.example .env
+# .env の YMM4_ROOT を実際の YMM4 本体ディレクトリへ変更
+```
+
+設定後はスクリプトから簡単に Release ビルドできます。
+
+```powershell
+./ps1/build-plugin.ps1
+```
+
+Debug ビルドや出力先の変更も指定できます。
+
+```powershell
+./ps1/build-plugin.ps1 -Configuration Debug -OutputPath artifacts\plugin-debug
+```
+
+スクリプトを使わず、YMM4 本体のディレクトリを直接指定してビルドする場合は次のコマンドです。
 
 ```powershell
 dotnet build src/YmmSourceControl.Plugin/YmmSourceControl.Plugin.csproj `
