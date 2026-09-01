@@ -12,6 +12,8 @@ public interface IGitClient
 
     Task<IReadOnlyList<GitCommitFile>> GetCommitFilesAsync(string commit, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<GitCommitChange>> GetCommitChangesAsync(string commit, CancellationToken cancellationToken = default);
+
     Task<string> GetCommitDiffAsync(string commit, CancellationToken cancellationToken = default);
 
     Task InitializeRepositoryAsync(CancellationToken cancellationToken = default);

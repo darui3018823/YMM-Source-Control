@@ -6,17 +6,22 @@ namespace YmmSourceControl.Plugin;
 
 public partial class CommitDetailsWindow : Window
 {
-    public CommitDetailsWindow(GitCommit commit, IReadOnlyList<GitCommitFile> files, string diff)
+    public CommitDetailsWindow(
+        GitCommit commit,
+        IReadOnlyList<GitCommitFile> files,
+        IReadOnlyList<GitCommitChange> changes,
+        string diff)
     {
         InitializeComponent();
         SubjectText.Text = commit.Subject;
         HashText.Text = commit.ShortHash;
         AuthorText.Text = commit.Author;
         DateText.Text = commit.Date;
-        FileCountText.Text = $"{files.Count} ファイル";
+        FileCountText.Text = $"{changes.Count} 件";
         DiffText.Text = diff;
         ChangedFilesList.ItemsSource = files;
         ChangedFilesList.ItemTemplate = CreateFileTemplate();
+        SummaryList.ItemsSource = changes;
     }
 
     private static DataTemplate CreateFileTemplate()
