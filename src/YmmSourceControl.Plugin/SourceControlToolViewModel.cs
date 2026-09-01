@@ -27,6 +27,8 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public ObservableCollection<GitFileStatus> Staged { get; } = [];
 
+    public ObservableCollection<GitCommit> History { get; } = [];
+
     public string Title => "Source Control";
 
     public bool CanSuspend => false;
@@ -94,6 +96,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
             var snapshot = await gitClient.GetSnapshotAsync();
             Changes.Clear();
             Staged.Clear();
+            History.Clear();
 
             if (snapshot is null)
             {
@@ -115,6 +118,11 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
             foreach (var file in snapshot.Staged)
             {
                 Staged.Add(file);
+            }
+
+            foreach (var commit in await gitClient.GetHistoryAsync(24))
+            {
+                History.Add(commit);
             }
 
             ErrorMessage = string.Empty;

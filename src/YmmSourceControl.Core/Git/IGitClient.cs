@@ -8,6 +8,8 @@ public interface IGitClient
 
     Task<string> GetDiffAsync(string path, bool staged, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<GitCommit>> GetHistoryAsync(int limit = 30, CancellationToken cancellationToken = default);
+
     Task StageAsync(string path, CancellationToken cancellationToken = default);
 
     Task UnstageAsync(string path, CancellationToken cancellationToken = default);
