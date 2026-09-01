@@ -1,0 +1,12 @@
+YMM Source Control
+
+Copyright (c) 2026, darui3018823
+
+This project is a YukkuriMovieMaker 4 plugin. It invokes Git and, for the
+GitHub remote publishing feature, the GitHub CLI installed on the user's
+system. Those products and their dependencies are separate software and are
+not relicensed by this notice.
+
+YukkuriMovieMaker and its API assemblies are provided by their respective
+copyright holders. Users must comply with the licenses and terms that apply
+to those products and any other third-party software used with this project.

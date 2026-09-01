@@ -33,6 +33,12 @@ Pushがnon-fast-forwardで拒否された場合は、MergeまたはRebaseでRemo
 
 MergeまたはRebaseで競合したファイルはペイン内の競合セクションへ表示されます。ファイルごとにローカルまたはRemoteの内容を採用するほか、「手動で編集」から競合マーカーを含むファイルを編集できます。すべて解決した後に操作を続行でき、操作全体を中止して開始前へ戻すこともできます。
 
+## 素材ファイルについて
+
+現在のバージョンでは、Git が追跡するのは `.ymmp` などのプロジェクトファイルです。YMM4 が参照する動画・音声・画像などの素材は自動でプロジェクト内へコピーせず、外部参照のまま扱います。素材のパスが絶対パスの場合、同じPC・同じ場所に素材が存在する環境でのみ、そのままプロジェクトを開けます。
+
+素材の取り込みや Git LFS による管理は、今後の別機能として扱います。現時点では、素材のバックアップや共有は Git の管理対象外です。
+
 ## GitHubへRemoteを発行
 
 Remoteがないリポジトリでは「GitHubへRemoteを発行」からGitHubリポジトリを作成できます。認証処理はプラグイン内に持たず、PATH上のGitHub CLI (`gh`) とその既存ログイン状態を使用します。
@@ -94,3 +100,7 @@ dotnet build src/YmmSourceControl.Plugin/YmmSourceControl.Plugin.csproj `
 ```
 
 この環境では既に `C:\Users\daruks\Downloads\YukkuriMovieMaker_v4_Lite\user\plugin\YmmSourceControl\` へ配置済みです。YMM4 の再起動後に読み込まれます。
+
+## License
+
+BSD 3-Clause License。詳細は [LICENSE](LICENSE) を参照してください。
