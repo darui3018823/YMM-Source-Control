@@ -4,6 +4,7 @@ obj/
 .idea/
 *.user
 *.suo
+.env
 artifacts/
 
 # Local YMM4 SDK location
