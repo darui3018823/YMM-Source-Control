@@ -170,8 +170,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public string OperationTitle => OperationState switch
     {
-        GitOperationState.Merge => "Mergeを解決中",
-        GitOperationState.Rebase => "Rebaseを解決中",
+        GitOperationState.Merge or GitOperationState.Rebase => "競合を解決中",
         _ => "競合を解決中",
     };
 
