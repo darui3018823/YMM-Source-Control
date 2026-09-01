@@ -174,6 +174,8 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         _ => "競合を解決中",
     };
 
+    public string ConflictPanelTitle => HasConflicts ? "競合を解決中" : "競合の解決が完了";
+
     public string? SelectedDirectory
     {
         get => selectedDirectory;
@@ -425,6 +427,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private void NotifyConflictStateChanged()
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasConflicts)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ConflictPanelTitle)));
         NotifyPrimaryActionChanged();
     }
 
