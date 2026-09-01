@@ -217,10 +217,12 @@
         <Button Click="PrimaryActionClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" Margin="0,0,2,0">
           <Button.Style>
             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-              <Setter Property="IsEnabled" Value="True" />
+              <Setter Property="IsHitTestVisible" Value="True" />
+              <Setter Property="Focusable" Value="True" />
               <Style.Triggers>
                 <DataTrigger Binding="{Binding IsPublishingRemote}" Value="True">
-                  <Setter Property="IsEnabled" Value="False" />
+                  <Setter Property="IsHitTestVisible" Value="False" />
+                  <Setter Property="Focusable" Value="False" />
                 </DataTrigger>
               </Style.Triggers>
             </Style>
