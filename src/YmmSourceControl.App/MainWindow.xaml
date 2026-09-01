@@ -1,0 +1,177 @@
+<Window x:Class="YmmSourceControl.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="YMM Source Control"
+        Width="420"
+        Height="760"
+        MinWidth="220"
+        MinHeight="420"
+        Background="{StaticResource PanelBackground}"
+        Foreground="{StaticResource PanelForeground}"
+        WindowStartupLocation="CenterScreen">
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="120" />
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Margin="0,0,0,10">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="SOURCE CONTROL" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <Button Content="⟳" ToolTip="Refresh" Click="RefreshClick" />
+        <Button Content="⋯" ToolTip="More actions" Margin="0" />
+      </StackPanel>
+    </Grid>
+
+    <Grid Grid.Row="1" Margin="0,0,0,12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="⑂" Foreground="{StaticResource AccentBrush}" FontSize="16" Margin="0,0,8,0" />
+      <TextBlock Grid.Column="1" Text="{Binding Branch}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+      <TextBlock Grid.Column="2" Text="{Binding RepositoryState}" Foreground="{StaticResource MutedForeground}" VerticalAlignment="Center" />
+    </Grid>
+
+    <TextBlock Grid.Row="2" Text="Message" Foreground="{StaticResource MutedForeground}" Margin="0,0,0,4" />
+    <TextBox Grid.Row="3"
+             x:Name="CommitMessage"
+             Height="64"
+             AcceptsReturn="True"
+             TextWrapping="Wrap"
+             VerticalScrollBarVisibility="Auto"
+             Background="#252526"
+             Foreground="{StaticResource PanelForeground}"
+             BorderBrush="{StaticResource BorderBrush}"
+             Padding="8"
+             ToolTip="Commit message" />
+    <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,8,0,10">
+      <Button Content="✓  Commit" Click="CommitClick" Background="#264F78" />
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+    </StackPanel>
+
+    <Grid Grid.Row="5">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <Grid Grid.Row="0" Margin="0,0,0,4">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="CHANGES" FontWeight="SemiBold" />
+        <TextBlock Grid.Column="1" Text="{Binding Changes.Count}" Foreground="{StaticResource MutedForeground}" />
+      </Grid>
+      <ListView Grid.Row="1"
+                x:Name="ChangesList"
+                ItemsSource="{Binding Changes}"
+                Background="Transparent"
+                BorderThickness="0"
+                Foreground="{StaticResource PanelForeground}"
+                SelectionChanged="FileSelectionChanged">
+        <ListView.ItemContainerStyle>
+          <Style TargetType="ListViewItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,1" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+          </Style>
+        </ListView.ItemContainerStyle>
+        <ListView.ItemTemplate>
+          <DataTemplate>
+            <Grid Margin="0,3">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="24" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="{Binding StatusLabel}" Foreground="{StaticResource AccentBrush}" FontFamily="Consolas" />
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedForeground}" FontSize="10" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+              <Button Grid.Column="2" Content="+" Tag="{Binding}" ToolTip="Stage" Click="StageClick" Margin="4,0,0,0" />
+            </Grid>
+          </DataTemplate>
+        </ListView.ItemTemplate>
+      </ListView>
+    </Grid>
+
+    <Grid Grid.Row="6" Margin="0,10,0,4">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="STAGED CHANGES" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="1" Text="{Binding Staged.Count}" Foreground="{StaticResource MutedForeground}" />
+    </Grid>
+    <ListView Grid.Row="7"
+              x:Name="StagedList"
+              ItemsSource="{Binding Staged}"
+              Background="Transparent"
+              BorderThickness="0"
+              Foreground="{StaticResource PanelForeground}"
+              SelectionChanged="FileSelectionChanged">
+      <ListView.ItemContainerStyle>
+        <Style TargetType="ListViewItem">
+          <Setter Property="Padding" Value="0" />
+          <Setter Property="Margin" Value="0,1" />
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+      </ListView.ItemContainerStyle>
+      <ListView.ItemTemplate>
+        <DataTemplate>
+          <Grid Margin="0,3">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="24" />
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding StatusLabel}" Foreground="#89D185" FontFamily="Consolas" />
+            <StackPanel Grid.Column="1">
+              <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedForeground}" FontSize="10" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button Grid.Column="2" Content="−" Tag="{Binding}" ToolTip="Unstage" Click="UnstageClick" Margin="4,0,0,0" />
+          </Grid>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+
+    <Grid Grid.Row="8" Margin="0,8,0,4">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="DIFF PREVIEW" FontWeight="SemiBold" />
+      <Button Grid.Column="1" Content="Discard" Click="DiscardClick" Foreground="{StaticResource DangerBrush}" />
+    </Grid>
+    <TextBox Grid.Row="9"
+             x:Name="DiffPreview"
+             IsReadOnly="True"
+             AcceptsReturn="True"
+             FontFamily="Consolas"
+             FontSize="11"
+             TextWrapping="NoWrap"
+             HorizontalScrollBarVisibility="Auto"
+             VerticalScrollBarVisibility="Auto"
+             Background="#181818"
+             Foreground="{StaticResource PanelForeground}"
+             BorderBrush="{StaticResource BorderBrush}"
+             Padding="8" />
+  </Grid>
+</Window>
+

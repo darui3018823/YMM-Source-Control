@@ -48,7 +48,7 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         var snapshot = await GetSnapshotAsync(cancellationToken)
             ?? throw new GitCommandException("Gitリポジトリが見つかりません。", 128, string.Empty);
 
-        var arguments = staged
+        IReadOnlyList<string> arguments = staged
             ? ["diff", "--cached", "--no-ext-diff", "--", path]
             : ["diff", "--no-ext-diff", "--", path];
         var result = await RunAsync(snapshot.RootPath, arguments, cancellationToken);
