@@ -48,8 +48,16 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public string? RepositoryRoot
     {
         get => repositoryRoot;
-        private set => SetField(ref repositoryRoot, value);
+        private set
+        {
+            if (SetField(ref repositoryRoot, value))
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasRepository)));
+            }
+        }
     }
+
+    public bool HasRepository => RepositoryRoot is not null;
 
     public string ErrorMessage
     {
