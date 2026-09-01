@@ -88,6 +88,43 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         return commits;
     }
 
+    public async Task<IReadOnlyList<GitCommitFile>> GetCommitFilesAsync(
+        string commit,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var result = await RunAsync(
+            root,
+            ["show", "--format=", "--no-renames", "--name-status", commit],
+            cancellationToken);
+        var files = new List<GitCommitFile>();
+
+        foreach (var line in result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var separator = line.IndexOf('\t');
+            if (separator <= 0 || separator == line.Length - 1)
+            {
+                continue;
+            }
+
+            files.Add(new GitCommitFile(line[..separator].Trim(), line[(separator + 1)..].TrimEnd('\r')));
+        }
+
+        return files;
+    }
+
+    public async Task<string> GetCommitDiffAsync(
+        string commit,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var result = await RunAsync(
+            root,
+            ["show", "--format=fuller", "--no-ext-diff", commit],
+            cancellationToken);
+        return result.StandardOutput;
+    }
+
     public async Task InitializeRepositoryAsync(CancellationToken cancellationToken = default)
     {
         if (!Directory.Exists(workingDirectory))

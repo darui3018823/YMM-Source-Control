@@ -162,6 +162,29 @@ public partial class SourceControlToolView : UserControl
         }
     }
 
+    private async void CommitSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ViewModel is null || (sender as ListBox)?.SelectedItem is not GitCommit commit)
+        {
+            return;
+        }
+
+        try
+        {
+            var files = await ViewModel.GetCommitFilesAsync(commit);
+            var diff = await ViewModel.GetCommitDiffAsync(commit);
+            var detailsWindow = new CommitDetailsWindow(commit, files, diff)
+            {
+                Owner = Window.GetWindow(this),
+            };
+            detailsWindow.Show();
+        }
+        catch (GitCommandException exception)
+        {
+            ViewModel.SetError(exception);
+        }
+    }
+
     private async void RefreshTimerTick(object? sender, EventArgs e)
     {
         refreshTimer.Stop();
