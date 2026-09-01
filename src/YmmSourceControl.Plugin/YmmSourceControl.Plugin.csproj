@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>YmmSourceControl</AssemblyName>
+    <RootNamespace>YmmSourceControl.Plugin</RootNamespace>
+    <Ymm4Path Condition="'$(Ymm4Path)' == ''">$(YMM4_ROOT)</Ymm4Path>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\YmmSourceControl.Core\YmmSourceControl.Core.csproj" />
+    <Reference Include="YukkuriMovieMaker.Plugin" HintPath="$(Ymm4Path)\YukkuriMovieMaker.Plugin.dll" Private="false" />
+  </ItemGroup>
+</Project>
+

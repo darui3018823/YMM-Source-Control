@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YmmSourceControl.Core", "sr
 EndProject
 Project("{60DC8134-BA46-4B07-BBFE-CC8B6B3F2B8F}") = "YmmSourceControl.App", "src\YmmSourceControl.App\YmmSourceControl.App.csproj", "{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}"
 EndProject
+Project("{60DC8134-BA46-4B07-BBFE-CC8B6B3F2B8F}") = "YmmSourceControl.Plugin", "src\YmmSourceControl.Plugin\YmmSourceControl.Plugin.csproj", "{F3A1CF56-4B6E-4AE8-9DFB-0D4A8CB13B8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,9 +22,12 @@ Global
 		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3A1CF56-4B6E-4AE8-9DFB-0D4A8CB13B8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3A1CF56-4B6E-4AE8-9DFB-0D4A8CB13B8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3A1CF56-4B6E-4AE8-9DFB-0D4A8CB13B8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3A1CF56-4B6E-4AE8-9DFB-0D4A8CB13B8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
-
