@@ -1,90 +1,107 @@
 # YMM Source Control
 
-YukkuriMovieMaker 4 に、Git の変更確認・ステージング・コミットをまとめた Source Control ペインを追加する草案です。
+YukkuriMovieMaker 4（YMM4）で Git リポジトリを操作するための Source Control プラグインです。変更の確認、ステージング、コミット、Remote 操作、Merge / Rebase の競合解決を YMM4 のツールペインから行えます。
 
-## この草案の方針
+## 概要
 
-- UI は VS Code の Source Control に寄せる
-- Git の実体は `git` CLI に任せる
-- `.ymmp` は通常の Git 管理を維持しつつ、将来は YMM 向け semantic diff を追加する
-- Git 操作と YMM4 の `IToolPlugin` 接続を分離する
-- まず単体の WPF プレビューで UI と Git 操作を検証する
+- YMM4 の `IToolPlugin` として Source Control ツールを提供
+- Git の実行はインストール済みの `git` コマンドへ委譲
+- GitHub への Remote 発行はインストール済みの `gh` コマンドを使用
+- WPF のプレビューアプリで、YMM4 と切り離して Git 操作と UI を確認可能
 
-## 現在できること
+## 対応している操作
 
-- リポジトリの自動検出
-- 現在ブランチの表示
-- Changes / Staged の表示
-- stage / unstage / discard
-- commit / amend / commit and push
-- fetch / pull / push
-- Merge または Rebase を選択する Pull（選択の保存に対応）
+### リポジトリと変更
+
+- Git リポジトリの自動検出
+- 対象フォルダーの選択
+- Git リポジトリの初期化
+- 現在のブランチとリポジトリ状態の表示
+- Changes / ステージ済みの変更の表示
+- ファイル単位のステージ、ステージ解除、変更破棄
+- ファイルの差分とコミット履歴の確認
+
+### コミット
+
+- コミット
+- 直前のコミットの修正（amend）
+- コミットして Push
+- ステージ済みの変更がない場合のステージ確認
+
+### Remote 操作
+
+- Fetch
+- Pull（Merge / Rebase の選択と設定保存）
+- Push
+- Push が拒否された場合の Pull → Push 再試行
 - ブランチを指定した Merge / Rebase
-- Merge / Rebase 競合の片側採用・手動編集、続行、中止
-- upstream と ahead / behind の表示
-- `gh` CLI による GitHub Remote の発行
-- ファイル変更を検知した自動更新（短い debounce 付き）
+- GitHub への Remote 発行
 
-## Remote操作
+Fetch、Pull、Push、Commit の実行中は、処理中のボタンにスピナーを表示し、同時に実行できない操作を無効化します。強制 Push（`--force`）は実行しません。
 
-Remoteがあるリポジトリでは、Source ControlペインからFetch、Pull、Pushを実行できます。PullではMergeまたはRebaseを選択でき、「この選択を保存し、次回から確認しない」を有効にすると、そのツール状態へ方式を保存します。
+### 競合解決
 
-Pushがnon-fast-forwardで拒否された場合は、MergeまたはRebaseでRemoteの変更を取り込んでからPushを再試行します。強制Pushは実行しません。
+Merge または Rebase で競合が発生すると、競合ファイルを一覧表示します。
 
-MergeまたはRebaseで競合したファイルはペイン内の競合セクションへ表示されます。ファイルごとにローカルまたはRemoteの内容を採用するほか、「手動で編集」から競合マーカーを含むファイルを編集できます。すべて解決した後に操作を続行でき、操作全体を中止して開始前へ戻すこともできます。
+- `PCを残す`：この PC 側の内容を採用
+- `共有先を使う`：Remote 側の内容を採用
+- `手動で編集`：競合マーカーを含むファイルを編集
+- `中止`：Merge / Rebase を開始前の状態へ戻す
+- すべての競合を解決した後に `続行`
 
-## 素材ファイルについて
+手動編集では `<<<<<<<`、`=======`、`>>>>>>>` の競合マーカーが残っていると登録できません。編集した内容を保存し、解決済みとしてステージしてから処理を続行します。
 
-現在のバージョンでは、Git が追跡するのは `.ymmp` などのプロジェクトファイルです。YMM4 が参照する動画・音声・画像などの素材は自動でプロジェクト内へコピーせず、外部参照のまま扱います。素材のパスが絶対パスの場合、同じPC・同じ場所に素材が存在する環境でのみ、そのままプロジェクトを開けます。
+## 素材ファイルの扱い
 
-素材の取り込みや Git LFS による管理は、今後の別機能として扱います。現時点では、素材のバックアップや共有は Git の管理対象外です。
+現在のバージョンでは、Git が追跡するのは `.ymmp` などのプロジェクトファイルです。YMM4 が参照する動画・音声・画像などの素材は自動でコピーせず、外部参照のまま扱います。
 
-## GitHubへRemoteを発行
+素材が絶対パスで保存されている場合、同じ PC の同じ場所に素材が存在する環境でのみ、そのプロジェクトをそのまま開けます。素材の取り込み、参照パスの書き換え、Git LFS による素材管理は未対応です。
 
-Remoteがないリポジトリでは「GitHubへRemoteを発行」からGitHubリポジトリを作成できます。認証処理はプラグイン内に持たず、PATH上のGitHub CLI (`gh`) とその既存ログイン状態を使用します。
+## 必要な環境
 
-```powershell
-gh auth login
-```
+- Windows
+- .NET SDK 10
+- Git
+- YMM4（YMM4 プラグインとして使用する場合）
+- GitHub CLI (`gh`)（GitHub へ Remote を発行する場合）
 
-発行ダイアログではリポジトリ名、Remote名、説明、公開範囲、作成後にPushするかを指定できます。
+## プレビューアプリの起動
 
-## 起動
+Git リポジトリの中で起動すると、そのリポジトリを対象にします。
 
 ```powershell
 dotnet run --project src/YmmSourceControl.App
 ```
 
-Git リポジトリの中で起動すると、そのリポジトリを対象にします。リポジトリ外では、ペインに案内が表示されます。
+## YMM4 プラグインのビルド
 
-## YMM4 への接続
-
-YMM4 の API DLL を参照できる環境で、`IToolPlugin` のアダプターを追加します。現行の API では `ViewType` と `ViewModelType` を返すツールプラグインとして登録する方針です。
-
-詳細な設計と v1/v2 の境界は [docs/PROPOSAL.md](docs/PROPOSAL.md) を参照してください。
-
-## YMM4 プラグインとしてビルド
-
-`.env.example` を `.env` にコピーし、YMM4 本体のディレクトリを `YMM4_ROOT` に設定します。
+`.env.example` を `.env` にコピーし、`YMM4_ROOT` に YMM4 本体のディレクトリを設定します。指定先には `YukkuriMovieMaker.Plugin.dll` が必要です。
 
 ```powershell
 Copy-Item .env.example .env
 # .env の YMM4_ROOT を実際の YMM4 本体ディレクトリへ変更
-```
-
-設定後はスクリプトから簡単に Release ビルドできます。
-
-```powershell
 ./ps1/build-plugin.ps1
 ```
 
-Debug ビルドや出力先の変更も指定できます。
+既定では Release ビルドを `artifacts\plugin` へ出力します。構成と出力先は変更できます。
 
 ```powershell
 ./ps1/build-plugin.ps1 -Configuration Debug -OutputPath artifacts\plugin-debug
 ```
 
-スクリプトを使わず、YMM4 本体のディレクトリを直接指定してビルドする場合は次のコマンドです。
+ビルド後、次のファイルを YMM4 の Plugin フォルダーへ配置します。
+
+```text
+<YMM4>\user\plugin\YmmSourceControl\
+├─ YmmSourceControl.dll
+├─ YmmSourceControl.Core.dll
+├─ YmmSourceControl.deps.json
+└─ YmmSourceControl.Core.deps.json
+```
+
+配置後に YMM4 を再起動するとプラグインが読み込まれます。
+
+直接 `dotnet build` を実行する場合は、YMM4 本体のディレクトリを MSBuild プロパティで指定します。
 
 ```powershell
 dotnet build src/YmmSourceControl.Plugin/YmmSourceControl.Plugin.csproj `
@@ -93,13 +110,12 @@ dotnet build src/YmmSourceControl.Plugin/YmmSourceControl.Plugin.csproj `
   -o artifacts\plugin
 ```
 
-`YmmSourceControl.dll` と `YmmSourceControl.Core.dll` を、YMM4 の次のフォルダーへ同じように配置します。
+## プロジェクト構成
 
-```text
-<YMM4>\user\plugin\YmmSourceControl\
-```
-
-この環境では既に `C:\Users\daruks\Downloads\YukkuriMovieMaker_v4_Lite\user\plugin\YmmSourceControl\` へ配置済みです。YMM4 の再起動後に読み込まれます。
+- `src/YmmSourceControl.Core`：Git 操作とモデル
+- `src/YmmSourceControl.Plugin`：YMM4 プラグインと Source Control UI
+- `src/YmmSourceControl.App`：単体プレビュー用 WPF アプリ
+- `ps1`：ビルド用 PowerShell スクリプト
 
 ## License
 
