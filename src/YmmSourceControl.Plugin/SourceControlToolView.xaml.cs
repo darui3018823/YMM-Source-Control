@@ -12,6 +12,7 @@ public partial class SourceControlToolView : UserControl
     private readonly DispatcherTimer refreshTimer;
     private FileSystemWatcher? watcher;
     private string? watchedRoot;
+    private FileDiffWindow? diffWindow;
 
     public SourceControlToolView()
     {
@@ -199,10 +200,33 @@ public partial class SourceControlToolView : UserControl
         try
         {
             ViewModel.DiffText = await ViewModel.GetDiffAsync(file);
+            ShowDiffWindow(file, ViewModel.DiffText);
         }
         catch (GitCommandException exception)
         {
             ViewModel.DiffText = exception.StandardError;
+        }
+    }
+
+    private void ShowDiffWindow(GitFileStatus file, string diff)
+    {
+        if (diffWindow is null)
+        {
+            diffWindow = new FileDiffWindow
+            {
+                Owner = Window.GetWindow(this),
+            };
+            diffWindow.Closed += (_, _) => diffWindow = null;
+        }
+
+        diffWindow.SetDiff(file, diff);
+        if (!diffWindow.IsVisible)
+        {
+            diffWindow.Show();
+        }
+        else
+        {
+            diffWindow.Activate();
         }
     }
 
@@ -312,6 +336,8 @@ public partial class SourceControlToolView : UserControl
     {
         watcher?.Dispose();
         refreshTimer.Stop();
+        diffWindow?.Close();
+        diffWindow = null;
     }
 
     private static bool IsGitMetadataPath(string root, string path)
