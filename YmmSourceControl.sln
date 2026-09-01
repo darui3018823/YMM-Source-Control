@@ -1,0 +1,28 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YmmSourceControl.Core", "src\YmmSourceControl.Core\YmmSourceControl.Core.csproj", "{B7A0E1A5-9C9B-4A50-9D3C-0E8EACB25E02}"
+EndProject
+Project("{60DC8134-BA46-4B07-BBFE-CC8B6B3F2B8F}") = "YmmSourceControl.App", "src\YmmSourceControl.App\YmmSourceControl.App.csproj", "{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7A0E1A5-9C9B-4A50-9D3C-0E8EACB25E02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7A0E1A5-9C9B-4A50-9D3C-0E8EACB25E02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7A0E1A5-9C9B-4A50-9D3C-0E8EACB25E02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7A0E1A5-9C9B-4A50-9D3C-0E8EACB25E02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9F23D3B-1B2A-47E7-A33B-8A3AFD9F7D73}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
+
