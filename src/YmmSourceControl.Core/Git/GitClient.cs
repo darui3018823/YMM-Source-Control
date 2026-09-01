@@ -82,7 +82,10 @@ public sealed class GitClient(string workingDirectory) : IGitClient
 
         for (var index = 0; index + 3 < records.Length; index += 4)
         {
-            commits.Add(new GitCommit(records[index], records[index + 1], records[index + 2], records[index + 3]));
+            // git log separates formatted commits with a newline. Since each field is
+            // NUL-delimited, that separator becomes part of the next commit's hash.
+            var shortHash = records[index].TrimStart('\r', '\n');
+            commits.Add(new GitCommit(shortHash, records[index + 1], records[index + 2], records[index + 3]));
         }
 
         return commits;
