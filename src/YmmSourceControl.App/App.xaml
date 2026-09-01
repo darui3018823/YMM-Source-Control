@@ -1,6 +1,7 @@
 <Application x:Class="YmmSourceControl.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
   <Application.Resources>
     <SolidColorBrush x:Key="PanelBackground" Color="#1E1E1E" />
     <SolidColorBrush x:Key="PanelForeground" Color="#D4D4D4" />
@@ -21,4 +22,3 @@
     </Style>
   </Application.Resources>
 </Application>
-

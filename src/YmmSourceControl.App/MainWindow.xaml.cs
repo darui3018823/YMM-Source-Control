@@ -1,6 +1,9 @@
+using System.IO;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 using YmmSourceControl.Core.Git;
 using YmmSourceControl.Core.Models;
@@ -180,7 +183,22 @@ public sealed class MainWindowViewModel(IGitClient gitClient) : INotifyPropertyC
 
     public string? RepositoryRoot { get; private set; }
 
-    public string ErrorMessage { get; set; } = string.Empty;
+    private string errorMessage = string.Empty;
+
+    public string ErrorMessage
+    {
+        get => errorMessage;
+        set
+        {
+            if (errorMessage == value)
+            {
+                return;
+            }
+
+            errorMessage = value;
+            OnPropertyChanged();
+        }
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -238,4 +256,3 @@ public sealed class MainWindowViewModel(IGitClient gitClient) : INotifyPropertyC
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-
