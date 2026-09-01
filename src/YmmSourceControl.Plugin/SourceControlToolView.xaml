@@ -46,6 +46,36 @@
         </Trigger>
       </Style.Triggers>
     </Style>
+    <Style x:Key="RemoteActionButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+      <Setter Property="IsEnabled" Value="True" />
+      <Setter Property="IsHitTestVisible" Value="True" />
+      <Setter Property="Focusable" Value="True" />
+    </Style>
+    <Style x:Key="LoadingSpinnerStyle" TargetType="Path">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+      <Setter Property="Data" Value="M 8,1 A 7,7 0 1 1 1,8" />
+      <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="StrokeStartLineCap" Value="Round" />
+      <Setter Property="StrokeEndLineCap" Value="Round" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+      <Setter Property="RenderTransform">
+        <Setter.Value>
+          <RotateTransform />
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+          <BeginStoryboard>
+            <Storyboard>
+              <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" From="0" To="360" Duration="0:0:0.8" RepeatBehavior="Forever" />
+            </Storyboard>
+          </BeginStoryboard>
+        </EventTrigger>
+      </Style.Triggers>
+    </Style>
     <Style x:Key="HistoryItemStyle" TargetType="ListBoxItem">
       <Setter Property="Margin" Value="0,1" />
       <Setter Property="Padding" Value="6,4" />
@@ -193,9 +223,144 @@
               <TextBlock Text="{Binding Behind}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
             </StackPanel>
           </StackPanel>
-          <Button Grid.Column="1" Content="Fetch" ToolTip="Remoteの参照を更新" Click="FetchClick" Style="{StaticResource ActionButtonStyle}" />
-          <Button Grid.Column="2" Content="Pull" ToolTip="Remoteの変更を取り込む" Click="PullClick" Style="{StaticResource ActionButtonStyle}" />
-          <Button Grid.Column="3" Content="Push" ToolTip="ローカルコミットを送信" Click="PushClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+          <Button Grid.Column="1" ToolTip="Remoteの参照を更新" Click="FetchClick">
+            <Button.Style>
+              <Style TargetType="Button" BasedOn="{StaticResource RemoteActionButtonStyle}">
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsPulling}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding IsPushing}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding IsFetching}" Value="True">
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="Focusable" Value="False" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Button.Style>
+            <Grid>
+              <TextBlock Text="Fetch">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsFetching}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel.Style>
+                  <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsFetching}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </StackPanel.Style>
+                <Path Style="{StaticResource LoadingSpinnerStyle}" Margin="0,0,5,0" />
+                <TextBlock Text="Fetch中…" />
+              </StackPanel>
+            </Grid>
+          </Button>
+          <Button Grid.Column="2" ToolTip="Remoteの変更を取り込む" Click="PullClick">
+            <Button.Style>
+              <Style TargetType="Button" BasedOn="{StaticResource RemoteActionButtonStyle}">
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFetching}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding IsPushing}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding IsPulling}" Value="True">
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="Focusable" Value="False" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Button.Style>
+            <Grid>
+              <TextBlock Text="Pull">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsPulling}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel.Style>
+                  <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsPulling}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </StackPanel.Style>
+                <Path Style="{StaticResource LoadingSpinnerStyle}" Margin="0,0,5,0" />
+                <TextBlock Text="Pull中…" />
+              </StackPanel>
+            </Grid>
+          </Button>
+          <Button Grid.Column="3" ToolTip="ローカルコミットを送信" Click="PushClick" Margin="0">
+            <Button.Style>
+              <Style TargetType="Button" BasedOn="{StaticResource RemoteActionButtonStyle}">
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFetching}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding IsPulling}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding IsPushing}" Value="True">
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="Focusable" Value="False" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Button.Style>
+            <Grid>
+              <TextBlock Text="Push">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsPushing}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel.Style>
+                  <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsPushing}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </StackPanel.Style>
+                <Path Style="{StaticResource LoadingSpinnerStyle}" Margin="0,0,5,0" />
+                <TextBlock Text="Push中…" />
+              </StackPanel>
+            </Grid>
+          </Button>
         </Grid>
       </Border>
 

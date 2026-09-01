@@ -29,6 +29,9 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private GitOperationState operationState;
     private bool isPublishingRemote;
     private bool isCommitting;
+    private bool isFetching;
+    private bool isPulling;
+    private bool isPushing;
 
     public SourceControlToolViewModel()
     {
@@ -109,6 +112,24 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     {
         get => isCommitting;
         private set => SetField(ref isCommitting, value);
+    }
+
+    public bool IsFetching
+    {
+        get => isFetching;
+        private set => SetField(ref isFetching, value);
+    }
+
+    public bool IsPulling
+    {
+        get => isPulling;
+        private set => SetField(ref isPulling, value);
+    }
+
+    public bool IsPushing
+    {
+        get => isPushing;
+        private set => SetField(ref isPushing, value);
     }
 
     public string RemoteSummary
@@ -350,6 +371,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public Task PushAsync() => gitClient.PushAsync();
 
+    public Task RunFetchAsync(Func<Task> operation) => RunRemoteOperationAsync(RemoteOperation.Fetch, operation);
+
+    public Task RunPullAsync(Func<Task> operation) => RunRemoteOperationAsync(RemoteOperation.Pull, operation);
+
+    public Task RunPushAsync(Func<Task> operation) => RunRemoteOperationAsync(RemoteOperation.Push, operation);
+
     public Task<IReadOnlyList<string>> GetBranchTargetsAsync() => gitClient.GetBranchTargetsAsync();
 
     public Task MergeAsync(string targetBranch) => gitClient.MergeAsync(targetBranch);
@@ -428,6 +455,47 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private async Task RunRemoteOperationAsync(RemoteOperation operation, Func<Task> callback)
+    {
+        if (IsFetching || IsPulling || IsPushing)
+        {
+            return;
+        }
+
+        SetRemoteOperationState(operation, true);
+        try
+        {
+            await callback();
+        }
+        finally
+        {
+            SetRemoteOperationState(operation, false);
+        }
+    }
+
+    private void SetRemoteOperationState(RemoteOperation operation, bool isActive)
+    {
+        switch (operation)
+        {
+            case RemoteOperation.Fetch:
+                IsFetching = isActive;
+                break;
+            case RemoteOperation.Pull:
+                IsPulling = isActive;
+                break;
+            case RemoteOperation.Push:
+                IsPushing = isActive;
+                break;
+        }
+    }
+
+    private enum RemoteOperation
+    {
+        Fetch,
+        Pull,
+        Push,
     }
 
     private sealed class PersistedState
