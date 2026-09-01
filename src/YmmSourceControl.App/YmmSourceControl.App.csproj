@@ -12,4 +12,3 @@
     <ProjectReference Include="..\YmmSourceControl.Core\YmmSourceControl.Core.csproj" />
   </ItemGroup>
 </Project>
-

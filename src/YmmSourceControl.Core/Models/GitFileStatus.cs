@@ -10,7 +10,6 @@ public enum GitFileKind
     Conflicted,
     Unknown,
 }
-
 public sealed record GitFileStatus(
     string Path,
     string IndexCode,
@@ -29,4 +28,3 @@ public sealed record GitFileStatus(
 
     public string DirectoryName => System.IO.Path.GetDirectoryName(Path) ?? string.Empty;
 }
-
