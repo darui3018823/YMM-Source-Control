@@ -16,8 +16,8 @@ YukkuriMovieMaker 4 に、Git の変更確認・ステージング・コミッ�
 - 現在ブランチの表示
 - Changes / Staged の表示
 - stage / unstage / discard
-- commit / amend / commit and push / commit and sync
-- fetch / pull / push / sync
+- commit / amend / commit and push
+- fetch / pull / push
 - Merge または Rebase を選択する Pull（選択の保存に対応）
 - ブランチを指定した Merge / Rebase
 - Merge / Rebase 競合のローカル・Remote選択、続行、中止
@@ -27,7 +27,7 @@ YukkuriMovieMaker 4 に、Git の変更確認・ステージング・コミッ�
 
 ## Remote操作
 
-Remoteがあるリポジトリでは、Source ControlペインからFetch、Pull、Push、同期を実行できます。PullではMergeまたはRebaseを選択でき、「この選択を保存し、次回から確認しない」を有効にすると、そのツール状態へ方式を保存します。
+Remoteがあるリポジトリでは、Source ControlペインからFetch、Pull、Pushを実行できます。PullではMergeまたはRebaseを選択でき、「この選択を保存し、次回から確認しない」を有効にすると、そのツール状態へ方式を保存します。
 
 Pushがnon-fast-forwardで拒否された場合は、MergeまたはRebaseでRemoteの変更を取り込んでからPushを再試行します。強制Pushは実行しません。
 
