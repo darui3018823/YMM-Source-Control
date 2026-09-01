@@ -119,6 +119,7 @@ public sealed class GitClient(string workingDirectory) : IGitClient
     {
         var root = await RequireRootAsync(cancellationToken);
         var files = await GetCommitFilesAsync(commit, cancellationToken);
+        var parentCommit = await TryGetParentCommitAsync(root, commit, cancellationToken);
         var changes = new List<GitCommitChange>();
 
         foreach (var file in files)
@@ -129,7 +130,9 @@ public sealed class GitClient(string workingDirectory) : IGitClient
                 continue;
             }
 
-            var before = await TryGetFileContentAsync(root, $"{commit}^:{file.Path}", cancellationToken);
+            var before = parentCommit is null
+                ? null
+                : await TryGetFileContentAsync(root, $"{parentCommit}:{file.Path}", cancellationToken);
             var after = await TryGetFileContentAsync(root, $"{commit}:{file.Path}", cancellationToken);
             changes.AddRange(DescribeYmmpChanges(file, before, after));
         }
@@ -514,6 +517,25 @@ public sealed class GitClient(string workingDirectory) : IGitClient
     {
         var result = await RunAsync(root, ["show", revisionAndPath], cancellationToken, allowFailure: true);
         return result.ExitCode == 0 ? result.StandardOutput : null;
+    }
+
+    private static async Task<string?> TryGetParentCommitAsync(
+        string root,
+        string commit,
+        CancellationToken cancellationToken)
+    {
+        var result = await RunAsync(
+            root,
+            ["rev-list", "--parents", "-n", "1", commit],
+            cancellationToken,
+            allowFailure: true);
+        if (result.ExitCode != 0)
+        {
+            return null;
+        }
+
+        var commits = result.StandardOutput.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        return commits.Length > 1 ? commits[1] : null;
     }
 
     public async Task InitializeRepositoryAsync(CancellationToken cancellationToken = default)
