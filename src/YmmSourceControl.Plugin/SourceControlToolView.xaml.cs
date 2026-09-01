@@ -207,7 +207,7 @@ public partial class SourceControlToolView : UserControl
             return;
         }
 
-        var file = ChangesList.SelectedItem as GitFileStatus ?? StagedList.SelectedItem as GitFileStatus;
+        var file = TakeSelection<GitFileStatus>(sender);
         if (file is null || ViewModel is null)
         {
             return;
@@ -249,7 +249,8 @@ public partial class SourceControlToolView : UserControl
 
     private async void CommitSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ViewModel is null || (sender as ListBox)?.SelectedItem is not GitCommit commit)
+        var commit = TakeSelection<GitCommit>(sender);
+        if (ViewModel is null || commit is null)
         {
             return;
         }
@@ -270,6 +271,18 @@ public partial class SourceControlToolView : UserControl
         {
             ViewModel.SetError(exception);
         }
+    }
+
+    private static T? TakeSelection<T>(object sender)
+        where T : class
+    {
+        if (sender is not ListBox listBox || listBox.SelectedItem is not T item)
+        {
+            return null;
+        }
+
+        listBox.SelectedItem = null;
+        return item;
     }
 
     private async void RefreshTimerTick(object? sender, EventArgs e)
