@@ -1031,6 +1031,7 @@ public sealed class GitClient(string workingDirectory) : IGitClient
 
     private static string GetWorkingFilePath(string root, string path)
     {
+        root = Path.GetFullPath(root);
         var fullPath = Path.GetFullPath(Path.Combine(root, path));
         var rootWithSeparator = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             + Path.DirectorySeparatorChar;
