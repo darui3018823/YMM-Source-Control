@@ -4,7 +4,7 @@ obj/
 .idea/
 *.user
 *.suo
+artifacts/
 
 # Local YMM4 SDK location
 .ymm4/
-
