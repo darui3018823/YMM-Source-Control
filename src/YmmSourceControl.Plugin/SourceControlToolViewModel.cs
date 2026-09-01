@@ -27,6 +27,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private int ahead;
     private int behind;
     private GitOperationState operationState;
+    private bool isPublishingRemote;
 
     public SourceControlToolViewModel()
     {
@@ -96,6 +97,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public string PrimaryActionLabel => IsPublishRemotePrimaryAction
         ? "GitHubへRemoteを発行"
         : "✓  コミット";
+
+    public bool IsPublishingRemote
+    {
+        get => isPublishingRemote;
+        private set => SetField(ref isPublishingRemote, value);
+    }
 
     public string RemoteSummary
     {
@@ -331,7 +338,23 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public Task AbortOperationAsync() => gitClient.AbortOperationAsync(OperationState);
 
-    public Task PublishRemoteAsync(RemotePublishOptions options) => gitClient.PublishRemoteAsync(options);
+    public async Task PublishRemoteAsync(RemotePublishOptions options)
+    {
+        if (IsPublishingRemote)
+        {
+            return;
+        }
+
+        IsPublishingRemote = true;
+        try
+        {
+            await gitClient.PublishRemoteAsync(options);
+        }
+        finally
+        {
+            IsPublishingRemote = false;
+        }
+    }
 
     public Task InitializeRepositoryAsync() => gitClient.InitializeRepositoryAsync();
 
