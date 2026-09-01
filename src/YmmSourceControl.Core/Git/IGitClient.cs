@@ -10,6 +10,10 @@ public interface IGitClient
 
     Task<IReadOnlyList<GitCommit>> GetHistoryAsync(int limit = 30, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<GitCommitFile>> GetCommitFilesAsync(string commit, CancellationToken cancellationToken = default);
+
+    Task<string> GetCommitDiffAsync(string commit, CancellationToken cancellationToken = default);
+
     Task InitializeRepositoryAsync(CancellationToken cancellationToken = default);
 
     Task StageAsync(string path, CancellationToken cancellationToken = default);

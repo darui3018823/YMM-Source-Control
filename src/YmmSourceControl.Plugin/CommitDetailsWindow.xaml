@@ -1,0 +1,63 @@
+<Window x:Class="YmmSourceControl.Plugin.CommitDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="コミットの変更"
+        Width="820"
+        Height="620"
+        MinWidth="560"
+        MinHeight="420"
+        Background="#FFFFFF"
+        Foreground="#333333"
+        WindowStartupLocation="CenterOwner">
+  <Window.Resources>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#333333" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#777777" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#D7D7D7" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#2B6CB0" />
+    <Style TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="Segoe UI" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+    </Style>
+    <Style TargetType="ListBoxItem">
+      <Setter Property="Padding" Value="7,5" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#F2F6FA" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+
+  <Grid Margin="14">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="125" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <TextBlock x:Name="SubjectText" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,12">
+      <TextBlock x:Name="HashText" Foreground="{StaticResource AccentBrush}" FontFamily="Consolas" />
+      <TextBlock Text="  ·  " Foreground="{StaticResource MutedBrush}" />
+      <TextBlock x:Name="AuthorText" Foreground="{StaticResource MutedBrush}" />
+      <TextBlock Text="  ·  " Foreground="{StaticResource MutedBrush}" />
+      <TextBlock x:Name="DateText" Foreground="{StaticResource MutedBrush}" />
+    </StackPanel>
+
+    <ListBox Grid.Row="2" x:Name="ChangedFilesList" Background="#FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" />
+
+    <Grid Grid.Row="3" Margin="0,12,0,5">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="変更内容" FontWeight="SemiBold" />
+      <TextBlock x:Name="FileCountText" Grid.Column="1" Foreground="{StaticResource MutedBrush}" />
+    </Grid>
+
+    <TextBox Grid.Row="4" x:Name="DiffText" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#FAFAFA" Foreground="#333333" BorderBrush="{StaticResource BorderBrush}" Padding="9" />
+  </Grid>
+</Window>

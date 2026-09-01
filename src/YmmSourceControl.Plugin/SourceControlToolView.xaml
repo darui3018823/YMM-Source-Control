@@ -202,7 +202,7 @@
         <TextBlock Text="グラフ" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="履歴" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-      <ListBox Grid.Row="10" ItemsSource="{Binding History}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox Grid.Row="10" ItemsSource="{Binding History}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CommitSelectionChanged">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Margin="0,2">
