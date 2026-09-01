@@ -2,6 +2,16 @@ bin/
 obj/
 .vs/
 .idea/
+!.idea/
+.idea/*
+!.idea/.idea.YmmSourceControl/
+.idea/.idea.YmmSourceControl/*
+!.idea/.idea.YmmSourceControl/.idea/
+.idea/.idea.YmmSourceControl/.idea/*
+!.idea/.idea.YmmSourceControl/.idea/encodings.xml
+!.idea/.idea.YmmSourceControl/.idea/vcs.xml
+!.idea/.idea.YmmSourceControl/.idea/runConfigurations/
+!.idea/.idea.YmmSourceControl/.idea/runConfigurations/YmmSourceControl.App.xml
 *.user
 *.suo
 .env
