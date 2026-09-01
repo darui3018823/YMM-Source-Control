@@ -70,7 +70,13 @@ public sealed class GitClient(string workingDirectory) : IGitClient
                 "--date=short",
                 "--pretty=format:%h%x00%an%x00%ad%x00%s%x00",
             ],
-            cancellationToken);
+            cancellationToken,
+            allowFailure: true);
+        if (result.ExitCode != 0)
+        {
+            return [];
+        }
+
         var records = result.StandardOutput.Split('\0', StringSplitOptions.RemoveEmptyEntries);
         var commits = new List<GitCommit>();
 
@@ -80,6 +86,16 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         }
 
         return commits;
+    }
+
+    public async Task InitializeRepositoryAsync(CancellationToken cancellationToken = default)
+    {
+        if (!Directory.Exists(workingDirectory))
+        {
+            throw new DirectoryNotFoundException($"フォルダーが見つかりません: {workingDirectory}");
+        }
+
+        await RunAsync(workingDirectory, ["init"], cancellationToken);
     }
 
     public async Task StageAsync(string path, CancellationToken cancellationToken = default)

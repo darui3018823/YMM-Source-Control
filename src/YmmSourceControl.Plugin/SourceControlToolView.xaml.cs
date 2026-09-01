@@ -54,6 +54,38 @@ public partial class SourceControlToolView : UserControl
         await RefreshAsync();
     }
 
+    private async void InitializeRepositoryClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"このフォルダーにGitリポジトリを初期化しますか？\n\n{ViewModel.SelectedDirectory}",
+            "Gitリポジトリを初期化",
+            MessageBoxButton.OKCancel,
+            MessageBoxImage.Question);
+        if (result != MessageBoxResult.OK)
+        {
+            return;
+        }
+
+        try
+        {
+            await ViewModel.InitializeRepositoryAsync();
+            await RefreshAsync();
+        }
+        catch (GitCommandException exception)
+        {
+            ViewModel.SetError(exception);
+        }
+        catch (DirectoryNotFoundException exception)
+        {
+            ViewModel.SetError(exception.Message);
+        }
+    }
+
     private async void CommitClick(object sender, RoutedEventArgs e)
     {
         if (ViewModel is null)

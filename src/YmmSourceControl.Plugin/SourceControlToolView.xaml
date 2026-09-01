@@ -68,6 +68,8 @@
         <TextBlock Text="Git リポジトリがありません" FontWeight="SemiBold" Margin="0,0,0,8" />
         <TextBlock Text="Git リポジトリを含むフォルダーを開くと、ここで変更を管理できます。" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,16" />
         <Button Content="フォルダーを開く" Click="ChooseRepositoryClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" />
+        <TextBlock Text="{Binding SelectedDirectory}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,10" />
+        <Button Content="Git リポジトリを初期化" Click="InitializeRepositoryClick" IsEnabled="{Binding CanInitializeRepository}" HorizontalContentAlignment="Center" />
       </StackPanel>
     </Border>
 
