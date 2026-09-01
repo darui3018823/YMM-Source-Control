@@ -28,6 +28,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private int behind;
     private GitOperationState operationState;
     private bool isPublishingRemote;
+    private bool isCommitting;
 
     public SourceControlToolViewModel()
     {
@@ -102,6 +103,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     {
         get => isPublishingRemote;
         private set => SetField(ref isPublishingRemote, value);
+    }
+
+    public bool IsCommitting
+    {
+        get => isCommitting;
+        private set => SetField(ref isCommitting, value);
     }
 
     public string RemoteSummary
@@ -318,6 +325,24 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public Task CommitAsync(string message) => gitClient.CommitAsync(message);
 
     public Task AmendCommitAsync(string message) => gitClient.AmendCommitAsync(message);
+
+    public async Task RunCommitAsync(Func<Task> operation)
+    {
+        if (IsCommitting)
+        {
+            return;
+        }
+
+        IsCommitting = true;
+        try
+        {
+            await operation();
+        }
+        finally
+        {
+            IsCommitting = false;
+        }
+    }
 
     public Task FetchAsync() => gitClient.FetchAsync();
 
