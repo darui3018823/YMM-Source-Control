@@ -56,6 +56,35 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         return result.StandardOutput;
     }
 
+    public async Task<IReadOnlyList<GitCommitChange>> GetChangesAsync(
+        string path,
+        bool staged,
+        CancellationToken cancellationToken = default)
+    {
+        var snapshot = await GetSnapshotAsync(cancellationToken)
+            ?? throw new GitCommandException("Gitリポジトリが見つかりません。", 128, string.Empty);
+        var file = snapshot.Files.FirstOrDefault(item => item.Path.Equals(path, StringComparison.Ordinal));
+        if (file is null)
+        {
+            return [];
+        }
+
+        var before = staged
+            ? await TryGetFileContentAsync(snapshot.RootPath, $"HEAD:{path}", cancellationToken)
+            : await TryGetFileContentAsync(snapshot.RootPath, $":{path}", cancellationToken);
+        var after = staged
+            ? await TryGetFileContentAsync(snapshot.RootPath, $":{path}", cancellationToken)
+            : await TryReadWorkingFileAsync(snapshot.RootPath, path, cancellationToken);
+        var commitFile = new GitCommitFile(GetStatusCode(file), path);
+
+        if (!path.EndsWith(".ymmp", StringComparison.OrdinalIgnoreCase))
+        {
+            return [new GitCommitChange(path, DescribeFileChange(commitFile), null, null)];
+        }
+
+        return DescribeYmmpChanges(commitFile, before, after);
+    }
+
     public async Task<IReadOnlyList<GitCommit>> GetHistoryAsync(
         int limit = 30,
         CancellationToken cancellationToken = default)
@@ -161,6 +190,14 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         "D" => "ファイルが削除されました",
         "M" => "ファイルが変更されました",
         _ => "ファイルが更新されました",
+    };
+
+    private static string GetStatusCode(GitFileStatus file) => file.Kind switch
+    {
+        GitFileKind.Added or GitFileKind.Untracked => "A",
+        GitFileKind.Deleted => "D",
+        GitFileKind.Renamed => "R",
+        _ => "M",
     };
 
     private static IReadOnlyList<GitCommitChange> DescribeYmmpChanges(
@@ -520,6 +557,17 @@ public sealed class GitClient(string workingDirectory) : IGitClient
     {
         var result = await RunAsync(root, ["show", revisionAndPath], cancellationToken, allowFailure: true);
         return result.ExitCode == 0 ? result.StandardOutput : null;
+    }
+
+    private static async Task<string?> TryReadWorkingFileAsync(
+        string root,
+        string path,
+        CancellationToken cancellationToken)
+    {
+        var fullPath = Path.Combine(root, path);
+        return File.Exists(fullPath)
+            ? await File.ReadAllTextAsync(fullPath, Encoding.UTF8, cancellationToken)
+            : null;
     }
 
     private static async Task<string?> TryGetParentCommitAsync(

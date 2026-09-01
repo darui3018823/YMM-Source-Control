@@ -181,6 +181,8 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public Task<string> GetDiffAsync(GitFileStatus file) => gitClient.GetDiffAsync(file.Path, file.IsStaged);
 
+    public Task<IReadOnlyList<GitCommitChange>> GetChangesAsync(GitFileStatus file) => gitClient.GetChangesAsync(file.Path, file.IsStaged);
+
     public Task<IReadOnlyList<GitCommitFile>> GetCommitFilesAsync(GitCommit commit) => gitClient.GetCommitFilesAsync(commit.ShortHash);
 
     public Task<IReadOnlyList<GitCommitChange>> GetCommitChangesAsync(GitCommit commit) => gitClient.GetCommitChangesAsync(commit.ShortHash);

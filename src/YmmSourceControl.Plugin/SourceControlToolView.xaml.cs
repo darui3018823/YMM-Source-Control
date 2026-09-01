@@ -199,8 +199,9 @@ public partial class SourceControlToolView : UserControl
 
         try
         {
+            var changes = await ViewModel.GetChangesAsync(file);
             ViewModel.DiffText = await ViewModel.GetDiffAsync(file);
-            ShowDiffWindow(file, ViewModel.DiffText);
+            ShowDiffWindow(file, changes, ViewModel.DiffText);
         }
         catch (GitCommandException exception)
         {
@@ -208,7 +209,7 @@ public partial class SourceControlToolView : UserControl
         }
     }
 
-    private void ShowDiffWindow(GitFileStatus file, string diff)
+    private void ShowDiffWindow(GitFileStatus file, IReadOnlyList<GitCommitChange> changes, string diff)
     {
         if (diffWindow is null)
         {
@@ -219,7 +220,7 @@ public partial class SourceControlToolView : UserControl
             diffWindow.Closed += (_, _) => diffWindow = null;
         }
 
-        diffWindow.SetDiff(file, diff);
+        diffWindow.SetDiff(file, changes, diff);
         if (!diffWindow.IsVisible)
         {
             diffWindow.Show();
