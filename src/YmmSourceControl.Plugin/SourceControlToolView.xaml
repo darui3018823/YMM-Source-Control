@@ -33,6 +33,19 @@
         </Trigger>
       </Style.Triggers>
     </Style>
+    <Style x:Key="ActionButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Padding" Value="5,2" />
+      <Setter Property="Margin" Value="0,0,3,0" />
+      <Setter Property="ToolTipService.InitialShowDelay" Value="150" />
+      <Setter Property="ToolTipService.ShowDuration" Value="6000" />
+      <Setter Property="ToolTipService.BetweenShowDelay" Value="100" />
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#EAF2FA" />
+          <Setter Property="BorderBrush" Value="#AFC8E0" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
   </UserControl.Resources>
 
   <Grid Margin="10">
@@ -145,8 +158,8 @@
                 <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
               </StackPanel>
               <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button Content="↶" Tag="{Binding}" ToolTip="変更を破棄" Click="DiscardClick" Margin="0,0,3,0" />
-                <Button Content="+" Tag="{Binding}" ToolTip="ステージ" Click="StageClick" Margin="0" />
+                <Button Content="↶" Tag="{Binding}" ToolTip="変更を破棄" Click="DiscardClick" Style="{StaticResource ActionButtonStyle}" />
+                <Button Content="+" Tag="{Binding}" ToolTip="ステージ" Click="StageClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
               </StackPanel>
             </Grid>
           </DataTemplate>
@@ -175,7 +188,7 @@
                 <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
                 <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
               </StackPanel>
-              <Button Grid.Column="2" Content="−" Tag="{Binding}" ToolTip="ステージから外す" Click="UnstageClick" Margin="4,0,0,0" />
+              <Button Grid.Column="2" Content="−" Tag="{Binding}" ToolTip="ステージから外す" Click="UnstageClick" Style="{StaticResource ActionButtonStyle}" Margin="4,0,0,0" />
             </Grid>
           </DataTemplate>
         </ListBox.ItemTemplate>
