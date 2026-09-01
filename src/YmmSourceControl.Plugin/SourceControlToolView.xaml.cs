@@ -263,7 +263,7 @@ public partial class SourceControlToolView : UserControl
     {
         if (ViewModel is not null)
         {
-            await ExecuteAsync(ViewModel.FetchAsync);
+            await ExecuteAsync(() => ViewModel.RunFetchAsync(ViewModel.FetchAsync));
         }
     }
 
@@ -277,7 +277,7 @@ public partial class SourceControlToolView : UserControl
         var strategy = ChoosePullStrategy("Remoteの変更を現在のブランチへ取り込みます。");
         if (strategy is not null)
         {
-            await ExecuteAsync(() => ViewModel.PullAsync(strategy.Value));
+            await ExecuteAsync(() => ViewModel.RunPullAsync(() => ViewModel.PullAsync(strategy.Value)));
         }
     }
 
@@ -446,22 +446,25 @@ public partial class SourceControlToolView : UserControl
             return;
         }
 
-        try
+        await ViewModel.RunPushAsync(async () =>
         {
-            await ViewModel.PushAsync();
-        }
-        catch (GitPushRejectedException)
-        {
-            var strategy = ChoosePullStrategy(
-                "Remoteに未取得の変更があるためPushが拒否されました。取り込み方法を選択すると、Pull後にPushを再試行します。");
-            if (strategy is null)
+            try
             {
-                return;
+                await ViewModel.PushAsync();
             }
+            catch (GitPushRejectedException)
+            {
+                var strategy = ChoosePullStrategy(
+                    "Remoteに未取得の変更があるためPushが拒否されました。取り込み方法を選択すると、Pull後にPushを再試行します。");
+                if (strategy is null)
+                {
+                    return;
+                }
 
-            await ViewModel.PullAsync(strategy.Value);
-            await ViewModel.PushAsync();
-        }
+                await ViewModel.PullAsync(strategy.Value);
+                await ViewModel.PushAsync();
+            }
+        });
     }
 
     private static void OpenButtonMenu(object sender)
