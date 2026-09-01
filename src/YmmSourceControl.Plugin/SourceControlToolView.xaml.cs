@@ -104,6 +104,18 @@ public partial class SourceControlToolView : UserControl
         await CommitAsync(amend: false, CommitFollowUp.None);
     }
 
+    private async void PrimaryActionClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel?.IsPublishRemotePrimaryAction == true)
+        {
+            await PublishRemoteAsync();
+        }
+        else
+        {
+            await CommitAsync(amend: false, CommitFollowUp.None);
+        }
+    }
+
     private async void AmendCommitClick(object sender, RoutedEventArgs e)
     {
         await CommitAsync(amend: true, CommitFollowUp.None);
@@ -315,6 +327,11 @@ public partial class SourceControlToolView : UserControl
     }
 
     private async void PublishRemoteClick(object sender, RoutedEventArgs e)
+    {
+        await PublishRemoteAsync();
+    }
+
+    private async Task PublishRemoteAsync()
     {
         if (ViewModel?.RepositoryRoot is not { } repositoryRoot)
         {

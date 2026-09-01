@@ -168,52 +168,37 @@
       <TextBlock Grid.Row="1" Text="{Binding RepositoryRoot}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" Margin="0,0,0,7" />
 
       <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="#FAFAFA" Padding="6" Margin="0,0,0,7">
-        <Grid>
-          <Button Content="GitHubへRemoteを発行" Click="PublishRemoteClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" Margin="0">
-            <Button.Style>
-              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Border.Style>
+          <Style TargetType="Border">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding HasRemote}" Value="True">
                 <Setter Property="Visibility" Value="Visible" />
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding HasRemote}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </Button.Style>
-          </Button>
-          <Grid>
-            <Grid.Style>
-              <Style TargetType="Grid">
-                <Setter Property="Visibility" Value="Collapsed" />
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding HasRemote}" Value="True">
-                    <Setter Property="Visibility" Value="Visible" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </Grid.Style>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition />
-              <ColumnDefinition Width="Auto" />
-              <ColumnDefinition Width="Auto" />
-              <ColumnDefinition Width="Auto" />
-              <ColumnDefinition Width="Auto" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="{Binding RemoteSummary}" FontSize="10" TextTrimming="CharacterEllipsis" />
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="↑ " Foreground="{StaticResource MutedBrush}" FontSize="10" />
-                <TextBlock Text="{Binding Ahead}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
-                <TextBlock Text="  ↓ " Foreground="{StaticResource MutedBrush}" FontSize="10" />
-                <TextBlock Text="{Binding Behind}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
-              </StackPanel>
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </Border.Style>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="{Binding RemoteSummary}" FontSize="10" TextTrimming="CharacterEllipsis" />
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="↑ " Foreground="{StaticResource MutedBrush}" FontSize="10" />
+              <TextBlock Text="{Binding Ahead}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
+              <TextBlock Text="  ↓ " Foreground="{StaticResource MutedBrush}" FontSize="10" />
+              <TextBlock Text="{Binding Behind}" Foreground="{StaticResource MutedBrush}" FontSize="10" />
             </StackPanel>
-            <Button Grid.Column="1" Content="Fetch" ToolTip="Remoteの参照を更新" Click="FetchClick" Style="{StaticResource ActionButtonStyle}" />
-            <Button Grid.Column="2" Content="Pull" ToolTip="Remoteの変更を取り込む" Click="PullClick" Style="{StaticResource ActionButtonStyle}" />
-            <Button Grid.Column="3" Content="Push" ToolTip="ローカルコミットを送信" Click="PushClick" Style="{StaticResource ActionButtonStyle}" />
-            <Button Grid.Column="4" Content="同期" ToolTip="PullしてからPush" Click="SyncClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
-          </Grid>
+          </StackPanel>
+          <Button Grid.Column="1" Content="Fetch" ToolTip="Remoteの参照を更新" Click="FetchClick" Style="{StaticResource ActionButtonStyle}" />
+          <Button Grid.Column="2" Content="Pull" ToolTip="Remoteの変更を取り込む" Click="PullClick" Style="{StaticResource ActionButtonStyle}" />
+          <Button Grid.Column="3" Content="Push" ToolTip="ローカルコミットを送信" Click="PushClick" Style="{StaticResource ActionButtonStyle}" />
+          <Button Grid.Column="4" Content="同期" ToolTip="PullしてからPush" Click="SyncClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
         </Grid>
       </Border>
 
@@ -227,10 +212,20 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition />
-          <ColumnDefinition Width="31" />
+          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <Button Content="✓  コミット" Click="CommitClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" Margin="0,0,2,0" />
-        <Button Grid.Column="1" Content="▼" ToolTip="コミット操作" Click="OpenCommitMenuClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" Padding="3" Margin="0">
+        <Button Content="{Binding PrimaryActionLabel}" Click="PrimaryActionClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" HorizontalContentAlignment="Center" Margin="0,0,2,0" />
+        <Button Grid.Column="1" Width="31" Content="▼" ToolTip="コミット操作" Click="OpenCommitMenuClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" Padding="3" Margin="0">
+          <Button.Style>
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+              <Setter Property="Visibility" Value="Visible" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPublishRemotePrimaryAction}" Value="True">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Button.Style>
           <Button.ContextMenu>
             <ContextMenu>
               <MenuItem Header="コミット" Click="CommitClick" />
