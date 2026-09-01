@@ -15,8 +15,10 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private string branch = "No repository";
     private string repositoryState = "Choose a Git repo";
     private string? repositoryRoot;
+    private string? selectedDirectory;
     private string errorMessage = string.Empty;
     private string diffText = string.Empty;
+    private bool repositorySelected;
 
     public SourceControlToolViewModel()
     {
@@ -59,6 +61,20 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public bool HasRepository => RepositoryRoot is not null;
 
+    public bool CanInitializeRepository => repositorySelected && !HasRepository;
+
+    public string? SelectedDirectory
+    {
+        get => selectedDirectory;
+        private set => SetField(ref selectedDirectory, value);
+    }
+
+    public string WorkingDirectory
+    {
+        get => workingDirectory;
+        private set => SetField(ref workingDirectory, value);
+    }
+
     public string ErrorMessage
     {
         get => errorMessage;
@@ -92,7 +108,10 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public void SetRepository(string path)
     {
-        workingDirectory = Path.GetFullPath(path);
+        WorkingDirectory = Path.GetFullPath(path);
+        SelectedDirectory = WorkingDirectory;
+        repositorySelected = true;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanInitializeRepository)));
         gitClient = new GitClient(workingDirectory);
         _ = RefreshAsync();
     }
@@ -152,6 +171,8 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public Task DiscardAsync(string path) => gitClient.DiscardAsync(path);
 
     public Task CommitAsync(string message) => gitClient.CommitAsync(message);
+
+    public Task InitializeRepositoryAsync() => gitClient.InitializeRepositoryAsync();
 
     public void SetError(GitCommandException exception)
     {
