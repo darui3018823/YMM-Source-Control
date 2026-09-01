@@ -96,6 +96,51 @@ public partial class SourceControlToolView : UserControl
 
         try
         {
+            if (ViewModel.Staged.Count == 0)
+            {
+                if (ViewModel.Changes.Count == 0)
+                {
+                    ViewModel.SetError("コミットする変更がありません。");
+                    return;
+                }
+
+                var shouldStageAll = ViewModel.SmartCommitPreference == SmartCommitPreference.Always;
+                if (ViewModel.SmartCommitPreference == SmartCommitPreference.Ask)
+                {
+                    var dialog = new SmartCommitDialog
+                    {
+                        Owner = Window.GetWindow(this),
+                    };
+                    if (dialog.ShowDialog() != true)
+                    {
+                        if (dialog.Choice == SmartCommitPreference.Never)
+                        {
+                            ViewModel.SetSmartCommitPreference(SmartCommitPreference.Never);
+                            ViewModel.SetError("ステージ済みの変更がありません。先に変更をステージしてください。");
+                        }
+
+                        return;
+                    }
+
+                    shouldStageAll = true;
+                    if (dialog.Choice == SmartCommitPreference.Always)
+                    {
+                        ViewModel.SetSmartCommitPreference(SmartCommitPreference.Always);
+                    }
+                }
+
+                if (ViewModel.SmartCommitPreference == SmartCommitPreference.Never)
+                {
+                    ViewModel.SetError("ステージ済みの変更がありません。先に変更をステージしてください。");
+                    return;
+                }
+
+                if (shouldStageAll)
+                {
+                    await ViewModel.StageAllAsync();
+                }
+            }
+
             await ViewModel.CommitAsync(CommitMessage.Text);
             CommitMessage.Clear();
             await RefreshAsync();

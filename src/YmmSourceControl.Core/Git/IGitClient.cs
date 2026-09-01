@@ -20,6 +20,8 @@ public interface IGitClient
 
     Task StageAsync(string path, CancellationToken cancellationToken = default);
 
+    Task StageAllAsync(CancellationToken cancellationToken = default);
+
     Task UnstageAsync(string path, CancellationToken cancellationToken = default);
 
     Task DiscardAsync(string path, CancellationToken cancellationToken = default);
