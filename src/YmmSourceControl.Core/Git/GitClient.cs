@@ -557,6 +557,12 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         await RunAsync(root, ["add", "--", path], cancellationToken);
     }
 
+    public async Task StageAllAsync(CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        await RunAsync(root, ["add", "--all", "--", "."], cancellationToken);
+    }
+
     public async Task UnstageAsync(string path, CancellationToken cancellationToken = default)
     {
         var root = await RequireRootAsync(cancellationToken);

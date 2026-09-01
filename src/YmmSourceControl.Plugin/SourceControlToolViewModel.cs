@@ -2,6 +2,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using YmmSourceControl.Core.Git;
 using YmmSourceControl.Core.Models;
 using YukkuriMovieMaker.Plugin;
@@ -19,6 +20,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private string errorMessage = string.Empty;
     private string diffText = string.Empty;
     private bool repositorySelected;
+    private SmartCommitPreference smartCommitPreference = SmartCommitPreference.Ask;
 
     public SourceControlToolViewModel()
     {
@@ -87,6 +89,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         set => SetField(ref diffText, value);
     }
 
+    public SmartCommitPreference SmartCommitPreference
+    {
+        get => smartCommitPreference;
+        private set => smartCommitPreference = value;
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     event EventHandler<CreateNewToolViewRequestedEventArgs>? IToolViewModel.CreateNewToolViewRequested
@@ -95,11 +103,31 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         remove { }
     }
 
-    public ToolState SaveState() => new() { SavedState = workingDirectory };
+    public ToolState SaveState() => new()
+    {
+        SavedState = JsonSerializer.Serialize(new PersistedState(workingDirectory, SmartCommitPreference)),
+    };
 
     public void LoadState(ToolState state)
     {
         var savedDirectory = state.SavedState;
+        if (!string.IsNullOrWhiteSpace(savedDirectory) && !Directory.Exists(savedDirectory))
+        {
+            try
+            {
+                var persistedState = JsonSerializer.Deserialize<PersistedState>(savedDirectory);
+                if (persistedState is not null)
+                {
+                    SmartCommitPreference = persistedState.SmartCommitPreference;
+                    savedDirectory = persistedState.WorkingDirectory;
+                }
+            }
+            catch (JsonException)
+            {
+                // Older versions stored only the directory path.
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(savedDirectory) && Directory.Exists(savedDirectory))
         {
             SetRepository(savedDirectory);
@@ -161,6 +189,10 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public Task StageAsync(string path) => gitClient.StageAsync(path);
 
+    public Task StageAllAsync() => gitClient.StageAllAsync();
+
+    public void SetSmartCommitPreference(SmartCommitPreference preference) => SmartCommitPreference = preference;
+
     public Task UnstageAsync(string path) => gitClient.UnstageAsync(path);
 
     public Task DiscardAsync(string path) => gitClient.DiscardAsync(path);
@@ -203,4 +235,6 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
     }
+
+    private sealed record PersistedState(string WorkingDirectory, SmartCommitPreference SmartCommitPreference);
 }
