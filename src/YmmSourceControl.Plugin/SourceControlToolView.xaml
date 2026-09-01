@@ -515,8 +515,8 @@
                     <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="このPCの内容" Tag="{Binding}" ToolTip="このPCで作業していた内容を残す" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
-                    <Button Content="Remoteの内容" Tag="{Binding}" ToolTip="Remoteから取得した内容を使う" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+                    <Button Content="このPCを残す" Tag="{Binding}" ToolTip="このPCで作業していた内容を残す" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
+                    <Button Content="共有先を使う" Tag="{Binding}" ToolTip="Remote（共有先）から取得した内容を使う" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
                   </StackPanel>
                 </Grid>
               </DataTemplate>
