@@ -505,8 +505,15 @@ public partial class SourceControlToolView : UserControl
     {
         if (sender is Button { ContextMenu: not null } button)
         {
-            button.ContextMenu.PlacementTarget = button;
-            button.ContextMenu.IsOpen = true;
+            var menu = button.ContextMenu;
+            button.Dispatcher.BeginInvoke(
+                DispatcherPriority.Input,
+                () =>
+                {
+                    menu.PlacementTarget = button;
+                    menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                    menu.IsOpen = true;
+                });
         }
     }
 
