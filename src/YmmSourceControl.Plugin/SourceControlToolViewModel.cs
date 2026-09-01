@@ -21,6 +21,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private string diffText = string.Empty;
     private bool repositorySelected;
     private SmartCommitPreference smartCommitPreference = SmartCommitPreference.Ask;
+    private PullStrategyPreference pullStrategyPreference = PullStrategyPreference.Ask;
+    private bool hasRemote;
+    private string remoteSummary = "Remoteなし";
+    private int ahead;
+    private int behind;
+    private GitOperationState operationState;
 
     public SourceControlToolViewModel()
     {
@@ -30,6 +36,8 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public ObservableCollection<GitFileStatus> Changes { get; } = [];
 
     public ObservableCollection<GitFileStatus> Staged { get; } = [];
+
+    public ObservableCollection<GitFileStatus> Conflicts { get; } = [];
 
     public ObservableCollection<GitCommit> History { get; } = [];
 
@@ -65,6 +73,54 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public bool CanInitializeRepository => repositorySelected && !HasRepository;
 
+    public bool HasRemote
+    {
+        get => hasRemote;
+        private set => SetField(ref hasRemote, value);
+    }
+
+    public string RemoteSummary
+    {
+        get => remoteSummary;
+        private set => SetField(ref remoteSummary, value);
+    }
+
+    public int Ahead
+    {
+        get => ahead;
+        private set => SetField(ref ahead, value);
+    }
+
+    public int Behind
+    {
+        get => behind;
+        private set => SetField(ref behind, value);
+    }
+
+    public GitOperationState OperationState
+    {
+        get => operationState;
+        private set
+        {
+            if (SetField(ref operationState, value))
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasActiveOperation)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OperationTitle)));
+            }
+        }
+    }
+
+    public bool HasActiveOperation => OperationState != GitOperationState.None;
+
+    public bool HasConflicts => Conflicts.Count > 0;
+
+    public string OperationTitle => OperationState switch
+    {
+        GitOperationState.Merge => "Mergeを解決中",
+        GitOperationState.Rebase => "Rebaseを解決中",
+        _ => "競合を解決中",
+    };
+
     public string? SelectedDirectory
     {
         get => selectedDirectory;
@@ -95,6 +151,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         private set => smartCommitPreference = value;
     }
 
+    public PullStrategyPreference PullStrategyPreference
+    {
+        get => pullStrategyPreference;
+        private set => pullStrategyPreference = value;
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     event EventHandler<CreateNewToolViewRequestedEventArgs>? IToolViewModel.CreateNewToolViewRequested
@@ -105,7 +167,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public ToolState SaveState() => new()
     {
-        SavedState = JsonSerializer.Serialize(new PersistedState(workingDirectory, SmartCommitPreference)),
+        SavedState = JsonSerializer.Serialize(new PersistedState
+        {
+            WorkingDirectory = workingDirectory,
+            SmartCommitPreference = SmartCommitPreference,
+            PullStrategyPreference = PullStrategyPreference,
+        }),
     };
 
     public void LoadState(ToolState state)
@@ -119,6 +186,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
                 if (persistedState is not null)
                 {
                     SmartCommitPreference = persistedState.SmartCommitPreference;
+                    PullStrategyPreference = persistedState.PullStrategyPreference;
                     savedDirectory = persistedState.WorkingDirectory;
                 }
             }
@@ -154,19 +222,39 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
             {
                 ReplaceCollection(Changes, []);
                 ReplaceCollection(Staged, []);
+                ReplaceCollection(Conflicts, []);
                 ReplaceCollection(History, []);
                 RepositoryRoot = null;
                 Branch = "No repository";
                 RepositoryState = "Choose a Git repo";
+                HasRemote = false;
+                RemoteSummary = "Remoteなし";
+                Ahead = 0;
+                Behind = 0;
+                OperationState = GitOperationState.None;
+                NotifyConflictStateChanged();
                 ErrorMessage = string.Empty;
                 return;
             }
 
             RepositoryRoot = snapshot.RootPath;
             Branch = snapshot.Branch;
-            RepositoryState = snapshot.Files.Count == 0 ? "Clean" : $"{snapshot.Files.Count} pending";
+            RepositoryState = snapshot.OperationState switch
+            {
+                GitOperationState.Merge => "Merge中",
+                GitOperationState.Rebase => "Rebase中",
+                _ => snapshot.Files.Count == 0 ? "Clean" : $"{snapshot.Files.Count} pending",
+            };
+            HasRemote = snapshot.HasRemote;
+            RemoteSummary = snapshot.Upstream
+                ?? (snapshot.Remotes.Count > 0 ? snapshot.Remotes[0] : "Remoteなし");
+            Ahead = snapshot.Ahead;
+            Behind = snapshot.Behind;
+            OperationState = snapshot.OperationState;
             ReplaceCollection(Changes, snapshot.Changes);
             ReplaceCollection(Staged, snapshot.Staged);
+            ReplaceCollection(Conflicts, snapshot.Conflicts);
+            NotifyConflictStateChanged();
             ReplaceCollection(History, await gitClient.GetHistoryAsync(24));
 
             ErrorMessage = string.Empty;
@@ -195,11 +283,36 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
 
     public void SetSmartCommitPreference(SmartCommitPreference preference) => SmartCommitPreference = preference;
 
+    public void SetPullStrategyPreference(PullStrategyPreference preference) => PullStrategyPreference = preference;
+
     public Task UnstageAsync(string path) => gitClient.UnstageAsync(path);
 
     public Task DiscardAsync(string path) => gitClient.DiscardAsync(path);
 
     public Task CommitAsync(string message) => gitClient.CommitAsync(message);
+
+    public Task AmendCommitAsync(string message) => gitClient.AmendCommitAsync(message);
+
+    public Task FetchAsync() => gitClient.FetchAsync();
+
+    public Task PullAsync(PullStrategy strategy) => gitClient.PullAsync(strategy);
+
+    public Task PushAsync() => gitClient.PushAsync();
+
+    public Task<IReadOnlyList<string>> GetBranchTargetsAsync() => gitClient.GetBranchTargetsAsync();
+
+    public Task MergeAsync(string targetBranch) => gitClient.MergeAsync(targetBranch);
+
+    public Task RebaseAsync(string targetBranch) => gitClient.RebaseAsync(targetBranch);
+
+    public Task ResolveConflictAsync(GitFileStatus file, ConflictResolution resolution) =>
+        gitClient.ResolveConflictAsync(file.Path, resolution, OperationState);
+
+    public Task ContinueOperationAsync() => gitClient.ContinueOperationAsync(OperationState);
+
+    public Task AbortOperationAsync() => gitClient.AbortOperationAsync(OperationState);
+
+    public Task PublishRemoteAsync(RemotePublishOptions options) => gitClient.PublishRemoteAsync(options);
 
     public Task InitializeRepositoryAsync() => gitClient.InitializeRepositoryAsync();
 
@@ -211,6 +324,11 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     }
 
     public void SetError(string message) => ErrorMessage = message;
+
+    private void NotifyConflictStateChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasConflicts)));
+    }
 
     private static void ReplaceCollection<T>(ObservableCollection<T> target, IReadOnlyList<T> source)
     {
@@ -238,5 +356,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         return true;
     }
 
-    private sealed record PersistedState(string WorkingDirectory, SmartCommitPreference SmartCommitPreference);
+    private sealed class PersistedState
+    {
+        public string WorkingDirectory { get; init; } = string.Empty;
+
+        public SmartCommitPreference SmartCommitPreference { get; init; } = SmartCommitPreference.Ask;
+
+        public PullStrategyPreference PullStrategyPreference { get; init; } = PullStrategyPreference.Ask;
+    }
 }
