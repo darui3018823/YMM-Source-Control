@@ -29,16 +29,91 @@ public sealed class GitClient(string workingDirectory) : IGitClient
             return null;
         }
 
-        var branchResult = await RunAsync(root, ["branch", "--show-current"], cancellationToken);
-        var statusResult = await RunAsync(
+        var branchTask = RunAsync(root, ["branch", "--show-current"], cancellationToken);
+        var statusTask = RunAsync(
             root,
             ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
             cancellationToken);
+        var remotesTask = RunAsync(root, ["remote"], cancellationToken, allowFailure: true);
+        var upstreamTask = RunAsync(
+            root,
+            ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"],
+            cancellationToken,
+            allowFailure: true);
+        var gitDirectoryTask = RunAsync(
+            root,
+            ["rev-parse", "--absolute-git-dir"],
+            cancellationToken);
+
+        await Task.WhenAll(branchTask, statusTask, remotesTask, upstreamTask, gitDirectoryTask);
+
+        var branchResult = await branchTask;
+        var statusResult = await statusTask;
+        var remotesResult = await remotesTask;
+        var upstreamResult = await upstreamTask;
+        var gitDirectoryResult = await gitDirectoryTask;
+        var branch = branchResult.StandardOutput.Trim() is { Length: > 0 } branchName
+            ? branchName
+            : "(detached HEAD)";
+        var remotes = remotesResult.StandardOutput
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var upstream = upstreamResult.ExitCode == 0
+            ? upstreamResult.StandardOutput.Trim() is { Length: > 0 } upstreamName ? upstreamName : null
+            : null;
+        var (ahead, behind) = await GetAheadBehindAsync(root, upstream, cancellationToken);
+        var operationState = GetOperationState(gitDirectoryResult.StandardOutput.Trim());
 
         return new RepositorySnapshot(
             root,
-            branchResult.StandardOutput.Trim() is { Length: > 0 } branch ? branch : "(detached HEAD)",
-            ParseStatus(statusResult.StandardOutput));
+            branch,
+            ParseStatus(statusResult.StandardOutput),
+            remotes,
+            upstream,
+            ahead,
+            behind,
+            operationState);
+    }
+
+    private static async Task<(int Ahead, int Behind)> GetAheadBehindAsync(
+        string root,
+        string? upstream,
+        CancellationToken cancellationToken)
+    {
+        if (upstream is null)
+        {
+            return (0, 0);
+        }
+
+        var result = await RunAsync(
+            root,
+            ["rev-list", "--left-right", "--count", $"HEAD...{upstream}"],
+            cancellationToken,
+            allowFailure: true);
+        var counts = result.StandardOutput.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        return result.ExitCode == 0
+            && counts.Length == 2
+            && int.TryParse(counts[0], CultureInfo.InvariantCulture, out var ahead)
+            && int.TryParse(counts[1], CultureInfo.InvariantCulture, out var behind)
+                ? (ahead, behind)
+                : (0, 0);
+    }
+
+    private static GitOperationState GetOperationState(string gitDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(gitDirectory))
+        {
+            return GitOperationState.None;
+        }
+
+        if (Directory.Exists(Path.Combine(gitDirectory, "rebase-merge"))
+            || Directory.Exists(Path.Combine(gitDirectory, "rebase-apply")))
+        {
+            return GitOperationState.Rebase;
+        }
+
+        return File.Exists(Path.Combine(gitDirectory, "MERGE_HEAD"))
+            ? GitOperationState.Merge
+            : GitOperationState.None;
     }
 
     public async Task<string> GetDiffAsync(
@@ -649,6 +724,279 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         await RunAsync(root, ["commit", "-m", message], cancellationToken);
     }
 
+    public async Task AmendCommitAsync(string message, CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        IReadOnlyList<string> arguments = string.IsNullOrWhiteSpace(message)
+            ? ["commit", "--amend", "--no-edit"]
+            : ["commit", "--amend", "-m", message];
+        await RunAsync(root, arguments, cancellationToken);
+    }
+
+    public async Task FetchAsync(CancellationToken cancellationToken = default)
+    {
+        var snapshot = await RequireSnapshotAsync(cancellationToken);
+        EnsureRemoteExists(snapshot);
+        await RunAsync(snapshot.RootPath, ["fetch", "--all", "--prune"], cancellationToken);
+    }
+
+    public async Task PullAsync(PullStrategy strategy, CancellationToken cancellationToken = default)
+    {
+        var snapshot = await RequireSnapshotAsync(cancellationToken);
+        EnsureRemoteExists(snapshot);
+        var arguments = new List<string>
+        {
+            "pull",
+            strategy == PullStrategy.Rebase ? "--rebase" : "--no-rebase",
+        };
+
+        if (snapshot.Upstream is null)
+        {
+            EnsureCurrentBranch(snapshot);
+            arguments.Add(GetPreferredRemote(snapshot));
+            arguments.Add(snapshot.Branch);
+        }
+
+        await RunAsync(snapshot.RootPath, arguments, cancellationToken);
+    }
+
+    public async Task PushAsync(CancellationToken cancellationToken = default)
+    {
+        var snapshot = await RequireSnapshotAsync(cancellationToken);
+        EnsureRemoteExists(snapshot);
+        IReadOnlyList<string> arguments;
+        if (snapshot.Upstream is null)
+        {
+            EnsureCurrentBranch(snapshot);
+            arguments = ["push", "--set-upstream", GetPreferredRemote(snapshot), snapshot.Branch];
+        }
+        else
+        {
+            arguments = ["push"];
+        }
+
+        var result = await RunAsync(snapshot.RootPath, arguments, cancellationToken, allowFailure: true);
+        if (result.ExitCode == 0)
+        {
+            return;
+        }
+
+        var output = $"{result.StandardOutput}\n{result.StandardError}";
+        if (IsPushRejected(output))
+        {
+            throw new GitPushRejectedException(
+                "リモートに未取得の変更があるためPushできませんでした。",
+                result.ExitCode,
+                result.StandardError.Trim());
+        }
+
+        throw new GitCommandException("git push に失敗しました。", result.ExitCode, result.StandardError.Trim());
+    }
+
+    public async Task<IReadOnlyList<string>> GetBranchTargetsAsync(CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var result = await RunAsync(
+            root,
+            [
+                "for-each-ref",
+                "--format=%(refname:short)%09%(HEAD)",
+                "refs/heads",
+                "refs/remotes",
+            ],
+            cancellationToken);
+
+        return result.StandardOutput
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(line => line.Split('\t', 2))
+            .Where(fields => fields.Length > 0
+                && (fields.Length == 1 || fields[1] != "*")
+                && !fields[0].EndsWith("/HEAD", StringComparison.Ordinal))
+            .Select(fields => fields[0])
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    public async Task MergeAsync(string targetBranch, CancellationToken cancellationToken = default)
+    {
+        ValidateBranchTarget(targetBranch);
+        var root = await RequireRootAsync(cancellationToken);
+        await RunAsync(root, ["merge", "--", targetBranch], cancellationToken);
+    }
+
+    public async Task RebaseAsync(string targetBranch, CancellationToken cancellationToken = default)
+    {
+        ValidateBranchTarget(targetBranch);
+        var root = await RequireRootAsync(cancellationToken);
+        await RunAsync(root, ["rebase", "--", targetBranch], cancellationToken);
+    }
+
+    public async Task ResolveConflictAsync(
+        string path,
+        ConflictResolution resolution,
+        GitOperationState operationState,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var keepOurs = operationState == GitOperationState.Rebase
+            ? resolution == ConflictResolution.KeepIncoming
+            : resolution == ConflictResolution.KeepLocal;
+        var side = keepOurs ? "--ours" : "--theirs";
+        var stageNumber = keepOurs ? 2 : 3;
+        var selectedVersion = await RunAsync(
+            root,
+            ["cat-file", "-e", $":{stageNumber}:{path}"],
+            cancellationToken,
+            allowFailure: true);
+
+        if (selectedVersion.ExitCode == 0)
+        {
+            await RunAsync(root, ["checkout", side, "--", path], cancellationToken);
+            await RunAsync(root, ["add", "--", path], cancellationToken);
+        }
+        else
+        {
+            await RunAsync(root, ["rm", "--ignore-unmatch", "--", path], cancellationToken);
+        }
+    }
+
+    public async Task ContinueOperationAsync(
+        GitOperationState operationState,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        switch (operationState)
+        {
+            case GitOperationState.Merge:
+                await RunAsync(root, ["commit", "--no-edit"], cancellationToken);
+                break;
+            case GitOperationState.Rebase:
+                await RunAsync(root, ["-c", "core.editor=true", "rebase", "--continue"], cancellationToken);
+                break;
+            default:
+                throw new InvalidOperationException("続行できるMergeまたはRebaseがありません。");
+        }
+    }
+
+    public async Task AbortOperationAsync(
+        GitOperationState operationState,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        switch (operationState)
+        {
+            case GitOperationState.Merge:
+                await RunAsync(root, ["merge", "--abort"], cancellationToken);
+                break;
+            case GitOperationState.Rebase:
+                await RunAsync(root, ["rebase", "--abort"], cancellationToken);
+                break;
+            default:
+                throw new InvalidOperationException("中止できるMergeまたはRebaseがありません。");
+        }
+    }
+
+    public async Task PublishRemoteAsync(
+        RemotePublishOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(options.RepositoryName))
+        {
+            throw new ArgumentException("リポジトリ名を入力してください。", nameof(options));
+        }
+
+        if (string.IsNullOrWhiteSpace(options.RemoteName))
+        {
+            throw new ArgumentException("Remote名を入力してください。", nameof(options));
+        }
+
+        if (options.RepositoryName.StartsWith("-", StringComparison.Ordinal)
+            || options.RemoteName.StartsWith("-", StringComparison.Ordinal))
+        {
+            throw new ArgumentException("リポジトリ名とRemote名を「-」から始めることはできません。", nameof(options));
+        }
+
+        var snapshot = await RequireSnapshotAsync(cancellationToken);
+        if (snapshot.Remotes.Contains(options.RemoteName, StringComparer.Ordinal))
+        {
+            throw new InvalidOperationException($"Remote「{options.RemoteName}」は既に存在します。");
+        }
+
+        var arguments = new List<string>
+        {
+            "repo",
+            "create",
+            options.RepositoryName,
+            options.Visibility switch
+            {
+                RemoteVisibility.Public => "--public",
+                RemoteVisibility.Internal => "--internal",
+                _ => "--private",
+            },
+            "--source",
+            snapshot.RootPath,
+            "--remote",
+            options.RemoteName,
+        };
+        if (!string.IsNullOrWhiteSpace(options.Description))
+        {
+            arguments.Add("--description");
+            arguments.Add(options.Description.Trim());
+        }
+
+        if (options.Push)
+        {
+            arguments.Add("--push");
+        }
+
+        await RunGitHubCliAsync(snapshot.RootPath, arguments, cancellationToken);
+    }
+
+    private async Task<RepositorySnapshot> RequireSnapshotAsync(CancellationToken cancellationToken)
+    {
+        return await GetSnapshotAsync(cancellationToken)
+            ?? throw new GitCommandException("Gitリポジトリが見つかりません。", 128, string.Empty);
+    }
+
+    private static void EnsureRemoteExists(RepositorySnapshot snapshot)
+    {
+        if (!snapshot.HasRemote)
+        {
+            throw new InvalidOperationException("Remoteがありません。先にRemoteを発行または追加してください。");
+        }
+    }
+
+    private static void EnsureCurrentBranch(RepositorySnapshot snapshot)
+    {
+        if (snapshot.Branch == "(detached HEAD)")
+        {
+            throw new InvalidOperationException("detached HEADではこの操作を実行できません。");
+        }
+    }
+
+    private static string GetPreferredRemote(RepositorySnapshot snapshot)
+    {
+        return snapshot.Remotes.Contains("origin", StringComparer.Ordinal)
+            ? "origin"
+            : snapshot.Remotes[0];
+    }
+
+    private static void ValidateBranchTarget(string targetBranch)
+    {
+        if (string.IsNullOrWhiteSpace(targetBranch) || targetBranch.StartsWith("-", StringComparison.Ordinal))
+        {
+            throw new ArgumentException("有効なブランチを選択してください。", nameof(targetBranch));
+        }
+    }
+
+    private static bool IsPushRejected(string output)
+    {
+        return output.Contains("[rejected]", StringComparison.OrdinalIgnoreCase)
+            || output.Contains("non-fast-forward", StringComparison.OrdinalIgnoreCase)
+            || output.Contains("fetch first", StringComparison.OrdinalIgnoreCase);
+    }
+
     private async Task<string> RequireRootAsync(CancellationToken cancellationToken)
     {
         var snapshot = await GetSnapshotAsync(cancellationToken)
@@ -711,17 +1059,36 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         };
     }
 
-    private static async Task<GitResult> RunAsync(
+    private static Task<GitResult> RunAsync(
         string directory,
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken,
         bool allowFailure = false)
     {
+        return RunCommandAsync("git", "git", directory, arguments, cancellationToken, allowFailure);
+    }
+
+    private static Task<GitResult> RunGitHubCliAsync(
+        string directory,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
+    {
+        return RunCommandAsync("gh", "GitHub CLI", directory, arguments, cancellationToken, allowFailure: false);
+    }
+
+    private static async Task<GitResult> RunCommandAsync(
+        string executable,
+        string displayName,
+        string directory,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken,
+        bool allowFailure)
+    {
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "git",
+                FileName = executable,
                 WorkingDirectory = directory,
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -743,7 +1110,10 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         }
         catch (Exception exception) when (exception is Win32Exception or InvalidOperationException)
         {
-            throw new GitCommandException("git コマンドを起動できません。Git がインストールされているか確認してください。", -1, exception.Message);
+            throw new GitCommandException(
+                $"{displayName}を起動できません。インストールとPATH設定を確認してください。",
+                -1,
+                exception.Message);
         }
 
         var standardOutputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
@@ -757,7 +1127,7 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         if (!allowFailure && result.ExitCode != 0)
         {
             throw new GitCommandException(
-                $"git {arguments[0]} に失敗しました。",
+                $"{displayName} {arguments[0]} に失敗しました。",
                 result.ExitCode,
                 result.StandardError.Trim());
         }

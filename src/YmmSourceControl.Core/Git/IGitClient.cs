@@ -29,4 +29,30 @@ public interface IGitClient
     Task DiscardAsync(string path, CancellationToken cancellationToken = default);
 
     Task CommitAsync(string message, CancellationToken cancellationToken = default);
+
+    Task AmendCommitAsync(string message, CancellationToken cancellationToken = default);
+
+    Task FetchAsync(CancellationToken cancellationToken = default);
+
+    Task PullAsync(PullStrategy strategy, CancellationToken cancellationToken = default);
+
+    Task PushAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<string>> GetBranchTargetsAsync(CancellationToken cancellationToken = default);
+
+    Task MergeAsync(string targetBranch, CancellationToken cancellationToken = default);
+
+    Task RebaseAsync(string targetBranch, CancellationToken cancellationToken = default);
+
+    Task ResolveConflictAsync(
+        string path,
+        ConflictResolution resolution,
+        GitOperationState operationState,
+        CancellationToken cancellationToken = default);
+
+    Task ContinueOperationAsync(GitOperationState operationState, CancellationToken cancellationToken = default);
+
+    Task AbortOperationAsync(GitOperationState operationState, CancellationToken cancellationToken = default);
+
+    Task PublishRemoteAsync(RemotePublishOptions options, CancellationToken cancellationToken = default);
 }
