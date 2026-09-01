@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Remoteの変更を取り込む"
         Width="620"
-        Height="320"
         MinWidth="560"
+        SizeToContent="Height"
         Background="#FFFFFF"
         Foreground="#333333"
         ResizeMode="NoResize"
@@ -32,7 +32,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
-      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
