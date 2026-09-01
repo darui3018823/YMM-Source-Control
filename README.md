@@ -20,7 +20,7 @@ YukkuriMovieMaker 4 に、Git の変更確認・ステージング・コミッ�
 - fetch / pull / push
 - Merge または Rebase を選択する Pull（選択の保存に対応）
 - ブランチを指定した Merge / Rebase
-- Merge / Rebase 競合のローカル・Remote選択、続行、中止
+- Merge / Rebase 競合の片側採用・手動編集、続行、中止
 - upstream と ahead / behind の表示
 - `gh` CLI による GitHub Remote の発行
 - ファイル変更を検知した自動更新（短い debounce 付き）
@@ -31,7 +31,7 @@ Remoteがあるリポジトリでは、Source ControlペインからFetch、Pull
 
 Pushがnon-fast-forwardで拒否された場合は、MergeまたはRebaseでRemoteの変更を取り込んでからPushを再試行します。強制Pushは実行しません。
 
-MergeまたはRebaseで競合したファイルはペイン内の競合セクションへ表示されます。ファイルごとにローカルまたはRemoteの内容を採用し、すべて解決した後に操作を続行できます。操作全体を中止して開始前へ戻すこともできます。
+MergeまたはRebaseで競合したファイルはペイン内の競合セクションへ表示されます。ファイルごとにローカルまたはRemoteの内容を採用するほか、「手動で編集」から競合マーカーを含むファイルを編集できます。すべて解決した後に操作を続行でき、操作全体を中止して開始前へ戻すこともできます。
 
 ## GitHubへRemoteを発行
 
