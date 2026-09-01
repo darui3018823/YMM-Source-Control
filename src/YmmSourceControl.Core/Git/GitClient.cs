@@ -861,6 +861,31 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         }
     }
 
+    public async Task<string> GetConflictContentAsync(
+        string path,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var fullPath = GetWorkingFilePath(root, path);
+        if (!File.Exists(fullPath))
+        {
+            throw new InvalidOperationException("この競合ファイルは作業ツリーに存在しないため、手動編集できません。片側の内容を採用してください。");
+        }
+
+        return await File.ReadAllTextAsync(fullPath, Encoding.UTF8, cancellationToken);
+    }
+
+    public async Task ResolveConflictAsync(
+        string path,
+        string content,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var fullPath = GetWorkingFilePath(root, path);
+        await File.WriteAllTextAsync(fullPath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), cancellationToken);
+        await RunAsync(root, ["add", "--", path], cancellationToken);
+    }
+
     public async Task ContinueOperationAsync(
         GitOperationState operationState,
         CancellationToken cancellationToken = default)
@@ -1002,6 +1027,19 @@ public sealed class GitClient(string workingDirectory) : IGitClient
         var snapshot = await GetSnapshotAsync(cancellationToken)
             ?? throw new GitCommandException("Gitリポジトリが見つかりません。", 128, string.Empty);
         return snapshot.RootPath;
+    }
+
+    private static string GetWorkingFilePath(string root, string path)
+    {
+        var fullPath = Path.GetFullPath(Path.Combine(root, path));
+        var rootWithSeparator = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        if (!fullPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("リポジトリ外のファイルは編集できません。", nameof(path));
+        }
+
+        return fullPath;
     }
 
     private static IReadOnlyList<GitFileStatus> ParseStatus(string output)

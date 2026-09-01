@@ -50,6 +50,10 @@ public interface IGitClient
         GitOperationState operationState,
         CancellationToken cancellationToken = default);
 
+    Task<string> GetConflictContentAsync(string path, CancellationToken cancellationToken = default);
+
+    Task ResolveConflictAsync(string path, string content, CancellationToken cancellationToken = default);
+
     Task ContinueOperationAsync(GitOperationState operationState, CancellationToken cancellationToken = default);
 
     Task AbortOperationAsync(GitOperationState operationState, CancellationToken cancellationToken = default);
