@@ -11,6 +11,7 @@ public partial class SourceControlToolView : UserControl
 {
     private readonly DispatcherTimer refreshTimer;
     private FileSystemWatcher? watcher;
+    private string? watchedRoot;
 
     public SourceControlToolView()
     {
@@ -169,6 +170,11 @@ public partial class SourceControlToolView : UserControl
 
     private void ScheduleRefresh(object? sender, FileSystemEventArgs e)
     {
+        if (watchedRoot is not null && IsGitMetadataPath(watchedRoot, e.FullPath))
+        {
+            return;
+        }
+
         Dispatcher.Invoke(() =>
         {
             refreshTimer.Stop();
@@ -214,6 +220,7 @@ public partial class SourceControlToolView : UserControl
 
         watcher?.Dispose();
         watcher = null;
+        watchedRoot = null;
         if (root is null || !Directory.Exists(root))
         {
             return;
@@ -225,6 +232,7 @@ public partial class SourceControlToolView : UserControl
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
             EnableRaisingEvents = true,
         };
+        watchedRoot = root;
         watcher.Changed += ScheduleRefresh;
         watcher.Created += ScheduleRefresh;
         watcher.Deleted += ScheduleRefresh;
@@ -235,5 +243,13 @@ public partial class SourceControlToolView : UserControl
     {
         watcher?.Dispose();
         refreshTimer.Stop();
+    }
+
+    private static bool IsGitMetadataPath(string root, string path)
+    {
+        var relativePath = Path.GetRelativePath(root, path);
+        return relativePath.Equals(".git", StringComparison.OrdinalIgnoreCase)
+            || relativePath.StartsWith($".git{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
+            || relativePath.StartsWith($".git{Path.AltDirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
     }
 }

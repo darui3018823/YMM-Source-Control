@@ -121,12 +121,12 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
         try
         {
             var snapshot = await gitClient.GetSnapshotAsync();
-            Changes.Clear();
-            Staged.Clear();
-            History.Clear();
 
             if (snapshot is null)
             {
+                ReplaceCollection(Changes, []);
+                ReplaceCollection(Staged, []);
+                ReplaceCollection(History, []);
                 RepositoryRoot = null;
                 Branch = "No repository";
                 RepositoryState = "Choose a Git repo";
@@ -137,20 +137,9 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
             RepositoryRoot = snapshot.RootPath;
             Branch = snapshot.Branch;
             RepositoryState = snapshot.Files.Count == 0 ? "Clean" : $"{snapshot.Files.Count} pending";
-            foreach (var file in snapshot.Changes)
-            {
-                Changes.Add(file);
-            }
-
-            foreach (var file in snapshot.Staged)
-            {
-                Staged.Add(file);
-            }
-
-            foreach (var commit in await gitClient.GetHistoryAsync(24))
-            {
-                History.Add(commit);
-            }
+            ReplaceCollection(Changes, snapshot.Changes);
+            ReplaceCollection(Staged, snapshot.Staged);
+            ReplaceCollection(History, await gitClient.GetHistoryAsync(24));
 
             ErrorMessage = string.Empty;
         }
@@ -182,6 +171,20 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     }
 
     public void SetError(string message) => ErrorMessage = message;
+
+    private static void ReplaceCollection<T>(ObservableCollection<T> target, IReadOnlyList<T> source)
+    {
+        if (target.SequenceEqual(source))
+        {
+            return;
+        }
+
+        target.Clear();
+        foreach (var item in source)
+        {
+            target.Add(item);
+        }
+    }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
