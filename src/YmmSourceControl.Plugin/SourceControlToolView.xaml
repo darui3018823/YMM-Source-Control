@@ -46,6 +46,34 @@
         </Trigger>
       </Style.Triggers>
     </Style>
+    <Style x:Key="HistoryItemStyle" TargetType="ListBoxItem">
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="Padding" Value="6,4" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Background" Value="#F2F6FA" />
+          <Setter Property="BorderBrush" Value="#D7D7D7" />
+        </Trigger>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="#F2F6FA" />
+          <Setter Property="BorderBrush" Value="#D7D7D7" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
   </UserControl.Resources>
 
   <Grid Margin="10">
@@ -202,7 +230,7 @@
         <TextBlock Text="グラフ" FontWeight="SemiBold" />
         <TextBlock Grid.Column="1" Text="履歴" Foreground="{StaticResource MutedBrush}" />
       </Grid>
-      <ListBox Grid.Row="10" ItemsSource="{Binding History}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CommitSelectionChanged">
+      <ListBox Grid.Row="10" ItemsSource="{Binding History}" ItemContainerStyle="{StaticResource HistoryItemStyle}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource ForegroundBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CommitSelectionChanged">
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid Margin="0,2">
