@@ -97,6 +97,14 @@ Copy-Item .env.example .env
 ./ps1/build-plugin.ps1 -Configuration Debug -OutputPath artifacts\plugin-debug
 ```
 
+配布用の`.ymme`は、ビルド後に次のコマンドで固定名として作成できます。中身はプラグイン本体とCore、依存情報の4ファイルです。
+
+```powershell
+./ps1/package-plugin.ps1
+```
+
+出力先は`artifacts\release\YmmSourceControl.ymme`です。Releaseを作成する場合は、このファイルを添付してください。`v*`タグをPushした場合は、GitHub Actionsがビルドと`.ymme`の添付を自動で行います。
+
 ビルド後、次のファイルを YMM4 の Plugin フォルダーへ配置します。
 
 ```text

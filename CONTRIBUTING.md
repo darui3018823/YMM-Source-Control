@@ -54,9 +54,10 @@ dotnet test test/YmmSourceControl.Core.Tests/YmmSourceControl.Core.Tests.csproj 
 dotnet build src/YmmSourceControl.Core/YmmSourceControl.Core.csproj --configuration Release
 dotnet build src/YmmSourceControl.App/YmmSourceControl.App.csproj --configuration Release
 ./ps1/build-plugin.ps1
+./ps1/package-plugin.ps1
 ```
 
-プラグインのビルドは`.env`とYMM4のDLLが必要です。実行できない確認がある場合は、Pull Requestに理由を記載してください。
+プラグインのビルドとパッケージ作成は`.env`とYMM4のDLLが必要です。実行できない確認がある場合は、Pull Requestに理由を記載してください。
 
 ## Pull Request
 
