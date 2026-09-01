@@ -385,6 +385,10 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public Task ResolveConflictAsync(GitFileStatus file, ConflictResolution resolution) =>
         gitClient.ResolveConflictAsync(file.Path, resolution, OperationState);
 
+    public Task<string> GetConflictContentAsync(GitFileStatus file) => gitClient.GetConflictContentAsync(file.Path);
+
+    public Task ResolveConflictAsync(GitFileStatus file, string content) => gitClient.ResolveConflictAsync(file.Path, content);
+
     public Task ContinueOperationAsync() => gitClient.ContinueOperationAsync(OperationState);
 
     public Task AbortOperationAsync() => gitClient.AbortOperationAsync(OperationState);

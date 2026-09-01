@@ -514,10 +514,11 @@
                     <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
                     <TextBlock Text="{Binding DirectoryName}" Foreground="{StaticResource MutedBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
-                  <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="このPCを残す" Tag="{Binding}" ToolTip="このPCで作業していた内容を残す" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
-                    <Button Content="共有先を使う" Tag="{Binding}" ToolTip="Remote（共有先）から取得した内容を使う" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
-                  </StackPanel>
+                  <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                    <Button Content="PCを残す" Tag="{Binding}" ToolTip="このPCで作業していた内容を残す" Click="KeepLocalConflictClick" Style="{StaticResource ActionButtonStyle}" />
+                    <Button Content="共有先を使う" Tag="{Binding}" ToolTip="Remote（共有先）から取得した内容を使う" Click="KeepIncomingConflictClick" Style="{StaticResource ActionButtonStyle}" />
+                    <Button Content="手動で編集" Tag="{Binding}" ToolTip="内容を確認し、自分で編集して解決する" Click="ManualConflictClick" Style="{StaticResource ActionButtonStyle}" Margin="0" />
+                  </WrapPanel>
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>

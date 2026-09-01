@@ -383,6 +383,35 @@ public partial class SourceControlToolView : UserControl
         }
     }
 
+    private async void ManualConflictClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null || (sender as Button)?.Tag is not GitFileStatus file)
+        {
+            return;
+        }
+
+        try
+        {
+            var content = await ViewModel.GetConflictContentAsync(file);
+            var dialog = new ConflictResolutionWindow(file.Path, content)
+            {
+                Owner = Window.GetWindow(this),
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                await ExecuteAsync(() => ViewModel.ResolveConflictAsync(file, dialog.ResolvedContent));
+            }
+        }
+        catch (GitCommandException exception)
+        {
+            ViewModel.SetError(exception);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            ViewModel.SetError(exception.Message);
+        }
+    }
+
     private async void ContinueOperationClick(object sender, RoutedEventArgs e)
     {
         if (ViewModel is not null)
