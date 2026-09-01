@@ -172,8 +172,9 @@ public partial class SourceControlToolView : UserControl
         try
         {
             var files = await ViewModel.GetCommitFilesAsync(commit);
+            var changes = await ViewModel.GetCommitChangesAsync(commit);
             var diff = await ViewModel.GetCommitDiffAsync(commit);
-            var detailsWindow = new CommitDetailsWindow(commit, files, diff)
+            var detailsWindow = new CommitDetailsWindow(commit, files, changes, diff)
             {
                 Owner = Window.GetWindow(this),
             };
