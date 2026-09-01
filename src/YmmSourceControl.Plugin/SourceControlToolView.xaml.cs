@@ -17,6 +17,7 @@ public partial class SourceControlToolView : UserControl
 
     public SourceControlToolView()
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
         refreshTimer.Tick += RefreshTimerTick;

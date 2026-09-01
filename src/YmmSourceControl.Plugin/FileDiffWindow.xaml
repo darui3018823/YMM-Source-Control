@@ -6,14 +6,14 @@
         Height="560"
         MinWidth="560"
         MinHeight="360"
-        Background="#FFFFFF"
-        Foreground="#333333"
+        Background="{DynamicResource YmmSourceControl.BackgroundBrush}"
+        Foreground="{DynamicResource YmmSourceControl.ForegroundBrush}"
         WindowStartupLocation="CenterOwner">
   <Window.Resources>
-    <SolidColorBrush x:Key="ForegroundBrush" Color="#333333" />
-    <SolidColorBrush x:Key="MutedBrush" Color="#777777" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#D7D7D7" />
-    <SolidColorBrush x:Key="AccentBrush" Color="#2B6CB0" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource YmmSourceControl.ForegroundColor}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{DynamicResource YmmSourceControl.MutedColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource YmmSourceControl.BorderColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource YmmSourceControl.AccentColor}" />
     <Style TargetType="TextBlock">
       <Setter Property="FontFamily" Value="Segoe UI" />
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
@@ -45,7 +45,7 @@
       <TextBlock x:Name="ChangeCountText" Grid.Column="1" Foreground="{StaticResource MutedBrush}" />
     </Grid>
 
-    <ListBox Grid.Row="3" x:Name="SummaryList" Background="#FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <ListBox Grid.Row="3" x:Name="SummaryList" Background="{DynamicResource YmmSourceControl.InputBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" ScrollViewer.VerticalScrollBarVisibility="Auto">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <StackPanel Margin="0,2,0,5">
@@ -57,7 +57,7 @@
     </ListBox>
 
     <Expander Grid.Row="4" Header="詳細なGit diffを表示（開発者向け）" Margin="0,10,0,0" IsExpanded="False">
-      <TextBox x:Name="DiffText" Height="195" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#FAFAFA" Foreground="#333333" BorderBrush="{StaticResource BorderBrush}" Padding="9" />
+      <TextBox x:Name="DiffText" Height="195" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="{DynamicResource YmmSourceControl.PanelBrush}" Foreground="{DynamicResource YmmSourceControl.ForegroundBrush}" BorderBrush="{StaticResource BorderBrush}" Padding="9" />
     </Expander>
   </Grid>
 </Window>

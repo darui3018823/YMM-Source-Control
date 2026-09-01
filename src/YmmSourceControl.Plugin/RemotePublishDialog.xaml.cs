@@ -7,6 +7,7 @@ public partial class RemotePublishDialog : Window
 {
     public RemotePublishDialog(string repositoryName)
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         RepositoryNameText.Text = repositoryName;
         RepositoryNameText.SelectAll();

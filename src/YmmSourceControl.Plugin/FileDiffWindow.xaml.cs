@@ -7,6 +7,7 @@ public partial class FileDiffWindow : Window
 {
     public FileDiffWindow()
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
     }
 

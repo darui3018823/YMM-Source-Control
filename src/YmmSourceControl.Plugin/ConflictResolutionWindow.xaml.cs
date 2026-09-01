@@ -7,6 +7,7 @@ public partial class ConflictResolutionWindow : Window
 {
     public ConflictResolutionWindow(string path, string content)
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         Title = $"競合を手動で解決 - {Path.GetFileName(path)}";
         PathText.Text = path;

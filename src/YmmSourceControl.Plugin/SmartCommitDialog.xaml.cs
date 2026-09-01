@@ -6,6 +6,7 @@ public partial class SmartCommitDialog : Window
 {
     public SmartCommitDialog()
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
     }
 

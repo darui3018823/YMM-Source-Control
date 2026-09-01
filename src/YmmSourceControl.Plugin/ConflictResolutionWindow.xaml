@@ -6,14 +6,14 @@
         Height="650"
         MinWidth="620"
         MinHeight="420"
-        Background="#FFFFFF"
-        Foreground="#333333"
+        Background="{DynamicResource YmmSourceControl.BackgroundBrush}"
+        Foreground="{DynamicResource YmmSourceControl.ForegroundBrush}"
         WindowStartupLocation="CenterOwner">
   <Window.Resources>
-    <SolidColorBrush x:Key="ForegroundBrush" Color="#333333" />
-    <SolidColorBrush x:Key="MutedBrush" Color="#777777" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#D7D7D7" />
-    <SolidColorBrush x:Key="AccentBackgroundBrush" Color="#2F75B5" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource YmmSourceControl.ForegroundColor}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{DynamicResource YmmSourceControl.MutedColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource YmmSourceControl.BorderColor}" />
+    <SolidColorBrush x:Key="AccentBackgroundBrush" Color="{DynamicResource YmmSourceControl.AccentBackgroundColor}" />
     <Style TargetType="TextBlock">
       <Setter Property="FontFamily" Value="Segoe UI" />
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
@@ -21,7 +21,7 @@
     <Style TargetType="Button">
       <Setter Property="Padding" Value="12,5" />
       <Setter Property="Margin" Value="0,0,7,0" />
-      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="Background" Value="{DynamicResource YmmSourceControl.BackgroundBrush}" />
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
     </Style>
@@ -47,13 +47,13 @@
              TextWrapping="NoWrap"
              HorizontalScrollBarVisibility="Auto"
              VerticalScrollBarVisibility="Auto"
-             Background="#FAFAFA"
-             Foreground="#333333"
+             Background="{DynamicResource YmmSourceControl.InputBrush}"
+             Foreground="{DynamicResource YmmSourceControl.ForegroundBrush}"
              BorderBrush="{StaticResource BorderBrush}"
              Padding="9" />
     <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
       <Button Content="キャンセル" IsCancel="True" />
-      <Button Content="解決済みとして登録" Click="ResolveClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" Margin="0" />
+      <Button Content="解決済みとして登録" Click="ResolveClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="{DynamicResource YmmSourceControl.AccentForegroundBrush}" BorderBrush="{StaticResource AccentBackgroundBrush}" Margin="0" />
     </StackPanel>
   </Grid>
 </Window>

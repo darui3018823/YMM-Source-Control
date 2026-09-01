@@ -7,6 +7,7 @@ public partial class PullStrategyDialog : Window
 {
     public PullStrategyDialog(string reason)
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         ReasonText.Text = reason;
     }

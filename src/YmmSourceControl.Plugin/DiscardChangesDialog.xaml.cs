@@ -6,6 +6,7 @@ public partial class DiscardChangesDialog : Window
 {
     public DiscardChangesDialog(string filePath)
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         FilePath = filePath;
         MessageText.Text = $"「{filePath}」の変更を破棄します。この操作は元に戻せません。";

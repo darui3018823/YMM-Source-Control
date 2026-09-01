@@ -11,6 +11,7 @@ public partial class BranchOperationDialog : Window
         string acceptLabel,
         IReadOnlyList<string> branches)
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         Title = title;
         HeadingText.Text = heading;

@@ -5,16 +5,16 @@
         Width="560"
         Height="205"
         MinWidth="500"
-        Background="#FFFFFF"
-        Foreground="#333333"
+        Background="{DynamicResource YmmSourceControl.BackgroundBrush}"
+        Foreground="{DynamicResource YmmSourceControl.ForegroundBrush}"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
   <Window.Resources>
-    <SolidColorBrush x:Key="ForegroundBrush" Color="#333333" />
-    <SolidColorBrush x:Key="MutedBrush" Color="#777777" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#D7D7D7" />
-    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#B42318" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource YmmSourceControl.ForegroundColor}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{DynamicResource YmmSourceControl.MutedColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource YmmSourceControl.BorderColor}" />
+    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="{DynamicResource YmmSourceControl.DangerColor}" />
     <Style TargetType="TextBlock">
       <Setter Property="FontFamily" Value="Segoe UI" />
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
@@ -22,7 +22,7 @@
     <Style TargetType="Button">
       <Setter Property="Padding" Value="10,5" />
       <Setter Property="Margin" Value="0,0,7,0" />
-      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="Background" Value="{DynamicResource YmmSourceControl.BackgroundBrush}" />
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
     </Style>
@@ -40,7 +40,7 @@
 
     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
       <Button Content="キャンセル" IsCancel="True" Click="CancelClick" />
-      <Button Content="変更を破棄" IsDefault="True" Click="DiscardClick" Background="{StaticResource DangerBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource DangerBackgroundBrush}" Margin="0" />
+      <Button Content="変更を破棄" IsDefault="True" Click="DiscardClick" Background="{StaticResource DangerBackgroundBrush}" Foreground="{DynamicResource YmmSourceControl.AccentForegroundBrush}" BorderBrush="{StaticResource DangerBackgroundBrush}" Margin="0" />
     </StackPanel>
   </Grid>
 </Window>

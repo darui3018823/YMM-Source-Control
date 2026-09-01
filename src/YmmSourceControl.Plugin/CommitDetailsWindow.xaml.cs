@@ -12,6 +12,7 @@ public partial class CommitDetailsWindow : Window
         IReadOnlyList<GitCommitChange> changes,
         string diff)
     {
+        YmmThemeResources.Initialize();
         InitializeComponent();
         SubjectText.Text = commit.Subject;
         HashText.Text = commit.ShortHash;

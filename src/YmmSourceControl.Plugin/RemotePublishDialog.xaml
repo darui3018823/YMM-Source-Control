@@ -5,16 +5,16 @@
         Width="600"
         Height="390"
         MinWidth="540"
-        Background="#FFFFFF"
-        Foreground="#333333"
+        Background="{DynamicResource YmmSourceControl.BackgroundBrush}"
+        Foreground="{DynamicResource YmmSourceControl.ForegroundBrush}"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
   <Window.Resources>
-    <SolidColorBrush x:Key="ForegroundBrush" Color="#333333" />
-    <SolidColorBrush x:Key="MutedBrush" Color="#777777" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#D7D7D7" />
-    <SolidColorBrush x:Key="AccentBackgroundBrush" Color="#2F75B5" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource YmmSourceControl.ForegroundColor}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{DynamicResource YmmSourceControl.MutedColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource YmmSourceControl.BorderColor}" />
+    <SolidColorBrush x:Key="AccentBackgroundBrush" Color="{DynamicResource YmmSourceControl.AccentBackgroundColor}" />
     <Style TargetType="TextBlock">
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
@@ -25,7 +25,7 @@
     <Style TargetType="Button">
       <Setter Property="Padding" Value="12,5" />
       <Setter Property="Margin" Value="0,0,7,0" />
-      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="Background" Value="{DynamicResource YmmSourceControl.InputBrush}" />
       <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
     </Style>
@@ -82,12 +82,12 @@
 
     <StackPanel Grid.Row="6">
       <CheckBox x:Name="PushOption" Content="作成後に現在のブランチをPushする" IsChecked="True" />
-      <TextBlock x:Name="ValidationText" Foreground="#B42318" TextWrapping="Wrap" Margin="0,8,0,0" />
+      <TextBlock x:Name="ValidationText" Foreground="{DynamicResource YmmSourceControl.DangerBrush}" TextWrapping="Wrap" Margin="0,8,0,0" />
     </StackPanel>
 
     <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
       <Button Content="キャンセル" IsCancel="True" />
-      <Button Content="発行" IsDefault="True" Click="PublishClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="White" BorderBrush="{StaticResource AccentBackgroundBrush}" Margin="0" />
+      <Button Content="発行" IsDefault="True" Click="PublishClick" Background="{StaticResource AccentBackgroundBrush}" Foreground="{DynamicResource YmmSourceControl.AccentForegroundBrush}" BorderBrush="{StaticResource AccentBackgroundBrush}" Margin="0" />
     </StackPanel>
   </Grid>
 </Window>
