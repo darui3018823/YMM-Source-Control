@@ -73,6 +73,14 @@ Git リポジトリの中で起動すると、そのリポジトリを対象に�
 dotnet run --project src/YmmSourceControl.App
 ```
 
+## テストの実行
+
+Core の Git 操作とモデルは、次のコマンドでテストできます。テストでは一時フォルダー内に Git リポジトリを作成するため、作業中のリポジトリは変更しません。
+
+```powershell
+dotnet test test/YmmSourceControl.Core.Tests/YmmSourceControl.Core.Tests.csproj --configuration Release
+```
+
 ## YMM4 プラグインのビルド
 
 `.env.example` を `.env` にコピーし、`YMM4_ROOT` に YMM4 本体のディレクトリを設定します。指定先には `YukkuriMovieMaker.Plugin.dll` が必要です。
