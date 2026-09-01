@@ -9,3 +9,6 @@ artifacts/
 
 # Local YMM4 SDK location
 .ymm4/
+
+# Local design and development notes; publish selected documents explicitly.
+docs/
