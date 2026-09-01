@@ -51,8 +51,20 @@ jobs:
         shell: pwsh
         run: ./ps1/package-plugin.ps1
 
-      - name: Create release
+      - name: Create or update release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}" --title "YMM Source Control ${{ github.ref_name }}" --generate-notes "artifacts/release/YmmSourceControl.ymme"
+          $tag = "${{ github.ref_name }}"
+          $repository = "${{ github.repository }}"
+          $asset = "artifacts/release/YmmSourceControl.ymme"
+
+          gh release view $tag --repo $repository *> $null
+          $releaseExists = $LASTEXITCODE -eq 0
+          if ($releaseExists) {
+              gh release upload $tag $asset --repo $repository --clobber
+              gh release edit $tag --repo $repository --title "YMM Source Control $tag"
+          }
+          else {
+              gh release create $tag --repo $repository --title "YMM Source Control $tag" --generate-notes $asset
+          }
