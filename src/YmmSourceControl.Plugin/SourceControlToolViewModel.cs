@@ -65,6 +65,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
             if (SetField(ref repositoryRoot, value))
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasRepository)));
+                NotifyPrimaryActionChanged();
             }
         }
     }
@@ -76,8 +77,25 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     public bool HasRemote
     {
         get => hasRemote;
-        private set => SetField(ref hasRemote, value);
+        private set
+        {
+            if (SetField(ref hasRemote, value))
+            {
+                NotifyPrimaryActionChanged();
+            }
+        }
     }
+
+    public bool IsPublishRemotePrimaryAction => HasRepository
+        && !HasRemote
+        && Changes.Count == 0
+        && Staged.Count == 0
+        && Conflicts.Count == 0
+        && !HasActiveOperation;
+
+    public string PrimaryActionLabel => IsPublishRemotePrimaryAction
+        ? "GitHubへRemoteを発行"
+        : "✓  コミット";
 
     public string RemoteSummary
     {
@@ -106,6 +124,7 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasActiveOperation)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OperationTitle)));
+                NotifyPrimaryActionChanged();
             }
         }
     }
@@ -328,6 +347,13 @@ public sealed class SourceControlToolViewModel : IToolViewModel, INotifyProperty
     private void NotifyConflictStateChanged()
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasConflicts)));
+        NotifyPrimaryActionChanged();
+    }
+
+    private void NotifyPrimaryActionChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPublishRemotePrimaryAction)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PrimaryActionLabel)));
     }
 
     private static void ReplaceCollection<T>(ObservableCollection<T> target, IReadOnlyList<T> source)
