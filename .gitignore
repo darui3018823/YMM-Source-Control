@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local YMM4 SDK location
+.ymm4/
+
