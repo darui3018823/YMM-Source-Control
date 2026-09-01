@@ -33,3 +33,21 @@ YMM4 の API DLL を参照できる環境で、`IToolPlugin` のアダプター�
 
 詳細な設計と v1/v2 の境界は [docs/PROPOSAL.md](docs/PROPOSAL.md) を参照してください。
 
+## YMM4 プラグインとしてビルド
+
+YMM4 本体のディレクトリを指定して、プラグインを Release ビルドします。
+
+```powershell
+dotnet build src/YmmSourceControl.Plugin/YmmSourceControl.Plugin.csproj `
+  -c Release `
+  -p:Ymm4Path="C:\path\to\YukkuriMovieMaker_v4_Lite" `
+  -o artifacts\plugin
+```
+
+`YmmSourceControl.dll` と `YmmSourceControl.Core.dll` を、YMM4 の次のフォルダーへ同じように配置します。
+
+```text
+<YMM4>\user\plugin\YmmSourceControl\
+```
+
+この環境では既に `C:\Users\daruks\Downloads\YukkuriMovieMaker_v4_Lite\user\plugin\YmmSourceControl\` へ配置済みです。YMM4 の再起動後に読み込まれます。
