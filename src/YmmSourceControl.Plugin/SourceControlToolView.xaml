@@ -498,11 +498,81 @@
               <ColumnDefinition />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding OperationTitle}" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="1" Text="{Binding Conflicts.Count}" Foreground="{StaticResource MutedBrush}" />
+            <TextBlock Text="{Binding ConflictPanelTitle}" FontWeight="SemiBold" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <TextBlock Text="未解決: " Foreground="{StaticResource MutedBrush}">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+              <TextBlock Text="{Binding Conflicts.Count}" Foreground="{StaticResource MutedBrush}">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+              <TextBlock Text="解決済み" Foreground="{StaticResource AccentBrush}">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                        <Setter Property="Visibility" Value="Visible" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+            </StackPanel>
           </Grid>
-          <TextBlock Text="このPCとRemote（共有先）の両方で変更されたファイルがあります。残したい内容を選んでください。選んだ内容は自動的に登録され、すべて選ぶと「続行」できます。" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6" />
+          <TextBlock Text="このPCとRemote（共有先）の両方で変更されたファイルがあります。残したい内容を選んでください。選んだ内容は自動的に登録され、すべて選ぶと「続行」できます。" Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
+          <TextBlock Text="すべての競合を解決しました。「続行」を押して処理を完了してください。" Foreground="{StaticResource AccentBrush}" TextWrapping="Wrap" Margin="0,0,0,6">
+            <TextBlock.Style>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                    <Setter Property="Visibility" Value="Visible" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
           <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer.Style>
+              <Style TargetType="ScrollViewer">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </ScrollViewer.Style>
             <ItemsControl ItemsSource="{Binding Conflicts}" Background="Transparent">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -527,15 +597,21 @@
           </ScrollViewer>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
             <Button Content="中止" ToolTip="今回のMergeまたはRebaseを取り消す" Click="AbortOperationClick" Style="{StaticResource ActionButtonStyle}" />
-            <Button Content="続行" ToolTip="すべての競合ファイルで内容を選んだ後に進める" Click="ContinueOperationClick" Margin="0">
-              <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
-                  <Setter Property="IsEnabled" Value="True" />
-                  <Style.Triggers>
-                    <DataTrigger Binding="{Binding HasConflicts}" Value="True">
-                      <Setter Property="IsEnabled" Value="False" />
-                    </DataTrigger>
-                  </Style.Triggers>
+              <Button Content="続行" ToolTip="すべての競合ファイルで内容を選んだ後に進める" Click="ContinueOperationClick" Margin="0">
+                <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                    <Setter Property="IsEnabled" Value="True" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding HasConflicts}" Value="True">
+                        <Setter Property="IsEnabled" Value="False" />
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding HasConflicts}" Value="False">
+                        <Setter Property="Background" Value="{StaticResource AccentBackgroundBrush}" />
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="BorderBrush" Value="{StaticResource AccentBackgroundBrush}" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                      </DataTrigger>
+                    </Style.Triggers>
                 </Style>
               </Button.Style>
             </Button>
