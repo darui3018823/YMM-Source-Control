@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using YmmSourceControl.Core.Models;
 
@@ -53,6 +54,32 @@ public sealed class GitClient(string workingDirectory) : IGitClient
             : ["diff", "--no-ext-diff", "--", path];
         var result = await RunAsync(snapshot.RootPath, arguments, cancellationToken);
         return result.StandardOutput;
+    }
+
+    public async Task<IReadOnlyList<GitCommit>> GetHistoryAsync(
+        int limit = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var root = await RequireRootAsync(cancellationToken);
+        var result = await RunAsync(
+            root,
+            [
+                "log",
+                "-n",
+                Math.Max(1, limit).ToString(CultureInfo.InvariantCulture),
+                "--date=short",
+                "--pretty=format:%h%x00%an%x00%ad%x00%s%x00",
+            ],
+            cancellationToken);
+        var records = result.StandardOutput.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+        var commits = new List<GitCommit>();
+
+        for (var index = 0; index + 3 < records.Length; index += 4)
+        {
+            commits.Add(new GitCommit(records[index], records[index + 1], records[index + 2], records[index + 3]));
+        }
+
+        return commits;
     }
 
     public async Task StageAsync(string path, CancellationToken cancellationToken = default)

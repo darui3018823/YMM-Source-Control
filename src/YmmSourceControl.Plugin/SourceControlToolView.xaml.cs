@@ -93,6 +93,24 @@ public partial class SourceControlToolView : UserControl
         }
     }
 
+    private async void DiscardClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null || (sender as Button)?.Tag is not GitFileStatus file)
+        {
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"「{file.Path}」の変更を破棄しますか？",
+            "変更を破棄",
+            MessageBoxButton.OKCancel,
+            MessageBoxImage.Warning);
+        if (result == MessageBoxResult.OK)
+        {
+            await ExecuteAsync(() => ViewModel.DiscardAsync(file.Path));
+        }
+    }
+
     private async void FileSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var file = ChangesList.SelectedItem as GitFileStatus ?? StagedList.SelectedItem as GitFileStatus;
