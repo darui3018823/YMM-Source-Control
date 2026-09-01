@@ -277,8 +277,8 @@
                   <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                     <Setter Property="Text" Value="発行中…" />
                     <Style.Triggers>
-                <DataTrigger Binding="{Binding IsCommitting}" Value="True">
-                  <Setter Property="Text" Value="コミット中…" />
+                      <DataTrigger Binding="{Binding IsCommitting}" Value="True">
+                        <Setter Property="Text" Value="コミット中…" />
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
