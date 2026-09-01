@@ -211,7 +211,7 @@ public partial class SourceControlToolView : UserControl
 
     private void ShowDiffWindow(GitFileStatus file, IReadOnlyList<GitCommitChange> changes, string diff)
     {
-        if (diffWindow is null)
+        if (diffWindow is null || !diffWindow.IsLoaded)
         {
             diffWindow = new FileDiffWindow
             {
