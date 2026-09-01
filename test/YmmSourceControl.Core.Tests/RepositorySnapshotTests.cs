@@ -29,4 +29,32 @@ public sealed class RepositorySnapshotTests
         Assert.Equal(["conflict.txt"], snapshot.Conflicts.Select(file => file.Path));
         Assert.True(snapshot.HasRemote);
     }
+
+    [Fact]
+    public void Snapshot_keeps_partially_staged_files_in_both_lists()
+    {
+        var files = new[]
+        {
+            new GitFileStatus("modified.txt", "M", "M", GitFileKind.Modified),
+            new GitFileStatus("added.txt", "A", "M", GitFileKind.Modified),
+            new GitFileStatus("staged-only.txt", "M", " ", GitFileKind.Modified),
+            new GitFileStatus("worktree-only.txt", " ", "M", GitFileKind.Modified),
+        };
+        var snapshot = new RepositorySnapshot(
+            "C:\\repo",
+            "main",
+            files,
+            [],
+            null,
+            0,
+            0,
+            GitOperationState.None);
+
+        Assert.Equal(
+            ["modified.txt", "added.txt", "worktree-only.txt"],
+            snapshot.Changes.Select(file => file.Path));
+        Assert.Equal(
+            ["modified.txt", "added.txt", "staged-only.txt"],
+            snapshot.Staged.Select(file => file.Path));
+    }
 }
