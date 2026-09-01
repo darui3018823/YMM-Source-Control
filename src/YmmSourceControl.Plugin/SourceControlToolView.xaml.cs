@@ -487,13 +487,13 @@ public partial class SourceControlToolView : UserControl
         {
             await ViewModel.PushAsync();
         }
-        catch (GitPushRejectedException exception)
+        catch (GitPushRejectedException)
         {
             var strategy = ChoosePullStrategy(
                 "Remoteに未取得の変更があるためPushが拒否されました。取り込み方法を選択すると、Pull後にPushを再試行します。");
             if (strategy is null)
             {
-                throw new GitCommandException(exception.Message, exception.ExitCode, exception.StandardError);
+                return;
             }
 
             await ViewModel.PullAsync(strategy.Value);
