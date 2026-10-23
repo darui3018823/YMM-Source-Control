@@ -4,8 +4,12 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    assignees:
+      - darui3018823
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    assignees:
+      - darui3018823
